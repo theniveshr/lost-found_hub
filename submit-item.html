@@ -491,8 +491,8 @@
                             <img id="dropdownAvatarImage" alt="User Avatar">
                         </div>
                         <div class="user-details">
-                            <h3 id="username">nivesharm</h3>
-                            <p id="useremail">nivesharm@example.com</p>
+                            <h3 id="username">User</h3>
+                            <p id="useremail">user@example.com</p>
                         </div>
                     </div>
                     <ul class="dropdown-menu">
@@ -998,6 +998,7 @@
             e.preventDefault();
             // Clear any stored authentication data
             localStorage.removeItem('authToken');
+            localStorage.removeItem('userId');
             // Redirect to login page
             window.location.href = 'login.html';
         });
@@ -1028,7 +1029,17 @@
             document.getElementById('imagePreview').style.display = 'none';
         });
 
-        // Form submission handler
+        // Function to convert image to base64
+        function convertImageToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Form submission handler - UPDATED TO SAVE TO DATABASE
         document.getElementById('itemForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             
@@ -1041,7 +1052,51 @@
             document.getElementById('loadingSpinner').style.display = 'block';
 
             try {
-                // Get form data for email
+                // Get form data
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    throw new Error('Please login to submit an item');
+                }
+
+                // Collect form data
+                const formData = new FormData();
+                formData.append('itemType', document.querySelector('input[name="itemType"]:checked').value);
+                formData.append('itemName', document.getElementById('itemName').value.trim());
+                formData.append('category', document.getElementById('category').value);
+                formData.append('description', document.getElementById('description').value.trim());
+                formData.append('location', document.getElementById('location').value.trim());
+                formData.append('date', document.getElementById('date').value);
+                formData.append('contactEmail', document.getElementById('contactEmail').value.trim());
+                formData.append('contactPhone', document.getElementById('contactPhone').value.trim());
+                
+                // Add image if exists
+                const fileInput = document.getElementById('itemImage');
+                if (fileInput.files[0]) {
+                    formData.append('itemImage', fileInput.files[0]);
+                }
+
+                console.log('Submitting item to database...');
+
+                // Step 1: Save item to database via API call
+                const dbResponse = await fetch('http://localhost:3000/api/items', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const dbResult = await dbResponse.json();
+                
+                if (!dbResponse.ok || !dbResult.success) {
+                    throw new Error(dbResult.message || 'Failed to save item to database');
+                }
+
+                console.log('Item saved to database successfully:', dbResult);
+
+                // Step 2: Send email notification
+                console.log('Sending email notification...');
+                
                 const emailData = {
                     itemType: document.querySelector('input[name="itemType"]:checked').value,
                     itemName: document.getElementById('itemName').value.trim(),
@@ -1052,16 +1107,12 @@
                     contactEmail: document.getElementById('contactEmail').value.trim(),
                     contactPhone: document.getElementById('contactPhone').value.trim(),
                     timestamp: new Date().toLocaleString(),
-                    hasImage: !!document.getElementById('itemImage').files[0],
-                    // Add sender information for email template
+                    hasImage: !!fileInput.files[0],
                     from_name: "Lost & Found Portal User",
                     from_email: document.getElementById('contactEmail').value.trim(),
                     to_email: "lostnfoundhub1@gmail.com"
                 };
 
-                console.log('Sending email notification...');
-                
-                // Send email notification only
                 const emailResult = await emailjs.send(
                     'service_csp5v7g', 
                     'template_ye5sd7p', 
@@ -1084,7 +1135,7 @@
                 console.error('Submission error:', error);
                 document.getElementById('loadingSpinner').style.display = 'none';
                 
-                if (error.message.includes('login')) {
+                if (error.message.includes('login') || error.message.includes('token')) {
                     alert('Please login to submit an item');
                     window.location.href = 'login.html';
                 } else {
@@ -1198,24 +1249,24 @@
                         userProfile.email || 'user@example.com'
                     );
                     
+                    // Store user ID in localStorage
+                    if (userProfile.user_id) {
+                        localStorage.setItem('userId', userProfile.user_id);
+                    }
+                    
                     // Update avatar with user's original image from database
                     if (userProfile.avatar) {
                         updateHeaderAvatars(userProfile.avatar);
-                    } else {
-                        // Use default avatar if no image in database
-                        // updateHeaderAvatars('https://i.pravatar.cc/150?img=12');
                     }
                 } else {
                     // Fallback to demo data if fetch fails
                     console.log('Using demo data as fallback');
-                    updateUserInfo('nivesharm', 'nivesharm@example.com');
-                    // updateHeaderAvatars('https://i.pravatar.cc/150?img=12');
+                    updateUserInfo('User', 'user@example.com');
                 }
             } catch (error) {
                 console.error('Error loading user profile:', error);
                 // Fallback to demo data
-                updateUserInfo('nivesharm', 'nivesharm@example.com');
-                // updateHeaderAvatars('https://i.pravatar.cc/150?img=12');
+                updateUserInfo('User', 'user@example.com');
             }
         });
     </script>

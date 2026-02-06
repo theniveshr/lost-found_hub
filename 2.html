@@ -1,0 +1,197 @@
+<script>
+        // Initialize EmailJS
+        emailjs.init("ieCJeX-5LsiuaA20c");
+
+        // Modal functionality for footer links
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        const privacyModal = document.getElementById('privacyModal');
+        const serviceModal = document.getElementById('serviceModal');
+        const termsModal = document.getElementById('termsModal');
+        const privacyLink = document.getElementById('privacyLink');
+        const serviceLink = document.getElementById('serviceLink');
+        const termsLink = document.getElementById('termsLink');
+
+        // Open modal functions
+        function openModal(modal) {
+            modalBackdrop.style.display = 'block';
+            modal.style.display = 'block';
+            document.body.classList.add('modal-open');
+        }
+
+        function closeModals() {
+            modalBackdrop.style.display = 'none';
+            privacyModal.style.display = 'none';
+            serviceModal.style.display = 'none';
+            termsModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+
+        // Event listeners for footer links
+        privacyLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openModal(privacyModal);
+        });
+
+        serviceLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openModal(serviceModal);
+        });
+
+        termsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openModal(termsModal);
+        });
+
+        // Close modals
+        modalBackdrop.addEventListener('click', closeModals);
+        
+        document.querySelectorAll('.close-btn').forEach(btn => {
+            btn.addEventListener('click', closeModals);
+        });
+
+        // Close with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModals();
+            }
+        });
+
+        // Function to update avatars in header
+        function updateHeaderAvatars(avatarUrl) {
+            const accountIconImage = document.getElementById('accountIconImage');
+            const accountIconFallback = document.getElementById('accountIconFallback');
+            const dropdownAvatarImage = document.getElementById('dropdownAvatarImage');
+            const dropdownAvatarFallback = document.getElementById('dropdownAvatarFallback');
+            
+            if (avatarUrl && avatarUrl !== '') {
+                // Update account icon
+                accountIconImage.src = avatarUrl;
+                accountIconImage.style.display = 'block';
+                accountIconFallback.style.display = 'none';
+                
+                // Update dropdown avatar
+                dropdownAvatarImage.src = avatarUrl;
+                dropdownAvatarImage.style.display = 'block';
+                dropdownAvatarFallback.style.display = 'none';
+            } else {
+                // Show fallback icons if no avatar
+                accountIconImage.style.display = 'none';
+                accountIconFallback.style.display = 'block';
+                dropdownAvatarImage.style.display = 'none';
+                dropdownAvatarFallback.style.display = 'block';
+            }
+        }
+
+        // Function to update user info
+        function updateUserInfo(username, email) {
+            const usernameElement = document.getElementById('username');
+            const useremailElement = document.getElementById('useremail');
+            
+            if (username) {
+                usernameElement.textContent = username;
+            }
+            
+            if (email) {
+                useremailElement.textContent = email;
+            }
+        }
+
+        // Function to fetch user profile from database
+        async function fetchUserProfile() {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    console.log('No authentication token found');
+                    return null;
+                }
+
+                // Fetch user profile from your backend API
+                const response = await fetch('http://localhost:3000/api/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user profile');
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    return result.user;
+                } else {
+                    throw new Error(result.message || 'Failed to fetch user profile');
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                return null;
+            }
+        }
+
+        // Toggle account dropdown
+        document.getElementById('accountIcon').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('accountDropdown').classList.toggle('active');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const accountSection = document.getElementById('accountSection');
+            if (!accountSection.contains(event.target)) {
+                document.getElementById('accountDropdown').classList.remove('active');
+            }
+        });
+
+        // Mobile menu toggle
+        document.getElementById('hamburgerMenu').addEventListener('click', function() {
+            document.getElementById('mainNav').classList.toggle('active');
+        });
+
+        // Logout functionality
+        document.querySelector('.logout-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            // Clear any stored authentication data
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userId');
+            // Redirect to login page
+            window.location.href = 'login.html';
+        });
+
+        // Image preview functionality
+        document.getElementById('itemImage').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            
+            if (file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
+        });
+
+        // Remove image functionality
+        document.getElementById('removeImage').addEventListener('click', function() {
+            document.getElementById('itemImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+        });
+
+        // Function to convert image to base64
+        function convertImageToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }

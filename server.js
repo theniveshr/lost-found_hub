@@ -15,7 +15,10 @@ require('dotenv').config();
 
 // ===================== APP SETUP =====================
 const app = express();
-app.use(bodyParser.json());
+
+// Increase payload size limit
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors());
 
 // Create uploads directories if they don't exist
@@ -36,52 +39,52 @@ if (!fs.existsSync(itemsDir)) {
 // ===================== MULTER CONFIGURATION =====================
 // Storage for avatars
 const avatarStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/avatars/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
-  }
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/avatars/');
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+    }
 });
 
 // Storage for item images
 const itemStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/items/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'item-' + uniqueSuffix + path.extname(file.originalname));
-  }
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/items/');
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'item-' + uniqueSuffix + path.extname(file.originalname));
+    }
 });
 
 const uploadAvatar = multer({
-  storage: avatarStorage,
-  limits: {
-    fileSize: 2 * 1024 * 1024 // 2MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
+    storage: avatarStorage,
+    limits: {
+        fileSize: 2 * 1024 * 1024 // 2MB limit
+    },
+    fileFilter: function (req, file, cb) {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed!'), false);
+        }
     }
-  }
 });
 
 const uploadItemImage = multer({
-  storage: itemStorage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit for item images
-  },
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
+    storage: itemStorage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit for item images
+    },
+    fileFilter: function (req, file, cb) {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed!'), false);
+        }
     }
-  }
 });
 
 // Serve uploaded files statically
@@ -503,13 +506,16 @@ app.post('/api/auth/google', async (req, res) => {
 
 // ===================== ITEMS ROUTES =====================
 
-// Save item to database with image upload - FIXED ENDPOINT
+// CORRECTED: Save item to database with image upload
 app.post('/api/items', authenticateToken, uploadItemImage.single('itemImage'), async (req, res) => {
     try {
-        console.log('Received item submission:', req.body);
-        console.log('Uploaded file:', req.file);
-        console.log('User ID:', req.user.id);
+        console.log('=== ITEM SUBMISSION STARTED ===');
+        console.log('User ID from token:', req.user.id);
+        console.log('Request body:', req.body);
+        console.log('Uploaded file:', req.file ? 'Yes' : 'No');
+        console.log('Request headers:', req.headers);
 
+        // Parse form data from multipart/form-data
         const {
             itemType,
             itemName,
@@ -521,9 +527,22 @@ app.post('/api/items', authenticateToken, uploadItemImage.single('itemImage'), a
             contactPhone
         } = req.body;
 
+        console.log('Form data parsed:', {
+            itemType, itemName, category, description, location, date, contactEmail, contactPhone
+        });
+
         // Validate required fields
         if (!itemType || !itemName || !category || !description || !location || !date || !contactEmail || !contactPhone) {
-            console.log('Missing required fields');
+            console.log('Missing required fields:', {
+                itemType: !itemType,
+                itemName: !itemName,
+                category: !category,
+                description: !description,
+                location: !location,
+                date: !date,
+                contactEmail: !contactEmail,
+                contactPhone: !contactPhone
+            });
             return res.status(400).json({
                 success: false,
                 message: 'All required fields must be provided'
@@ -532,6 +551,7 @@ app.post('/api/items', authenticateToken, uploadItemImage.single('itemImage'), a
 
         // Get user_id from authenticated user (null for admin)
         const userId = req.user.id === "admin" ? null : req.user.id;
+        console.log('User ID for database:', userId);
 
         // Handle image URL - using item_image column
         let itemImage = null;
@@ -540,7 +560,9 @@ app.post('/api/items', authenticateToken, uploadItemImage.single('itemImage'), a
             console.log('Image URL saved:', itemImage);
         }
 
-        console.log('Inserting into database with user ID:', userId, 'and image URL:', itemImage);
+        console.log('Inserting into database with data:', {
+            itemType, itemName, category, description, location, date, contactEmail, contactPhone, itemImage, userId
+        });
 
         // Insert item into database
         const query = `
@@ -569,8 +591,11 @@ app.post('/api/items', authenticateToken, uploadItemImage.single('itemImage'), a
             itemId: result.insertId,
             itemImage: itemImage
         });
+        
+        console.log('=== ITEM SUBMISSION COMPLETED ===');
     } catch (error) {
         console.error('Database error:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({
             success: false,
             message: 'Failed to save item to database: ' + error.message
@@ -1206,7 +1231,13 @@ app.use((error, req, res, next) => {
 // ===================== START SERVER =====================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
+    console.log(`=== Lost & Found Hub Server ===`);
     console.log(`Server running on port ${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/api/health`);
     console.log(`Uploads directory: ${uploadsDir}`);
+    console.log(`\n=== API Endpoints ===`);
+    console.log(`POST /api/items - Submit lost/found item`);
+    console.log(`GET  /api/items - Get all items`);
+    console.log(`GET  /api/profile - Get user profile`);
+    console.log(`\n=== Ready to receive submissions ===`);
 });
