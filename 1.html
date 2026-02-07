@@ -3,567 +3,539 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit an Item | Lost & Found Portal</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="forms.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <title>Admin Hub | Lost & Found</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ... (keep all your existing styles) ... */
+        :root {
+            --primary-green: #4CAF50;
+            --primary-blue: #007BFF;
+            --bg-soft: #f8fafc;
+        }
+        body {
+            background-color: var(--bg-soft);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .sidebar-link.active {
+            background-color: rgba(0, 123, 255, 0.1);
+            color: var(--primary-blue);
+            border-right: 4px solid var(--primary-blue);
+        }
+        .btn-green { background-color: var(--primary-green); color: white; }
+        .btn-green:hover { background-color: #388E3C; }
+        .btn-blue { background-color: var(--primary-blue); color: white; }
+        .btn-blue:hover { background-color: #0056b3; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal.active { display: flex; }
+
+        /* Animation */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body>
-    <!-- ... (keep all your existing HTML structure) ... -->
+<body class="flex min-h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
+        <div class="p-6 border-b">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                <i class="fas fa-search-location text-[#4CAF50]"></i>
+                <span class="text-[#007BFF]">L&F</span> Hub
+            </h1>
+        </div>
+        <nav class="flex-1 mt-4">
+            <a href="#" onclick="switchSection('dashboard')" class="sidebar-link active flex items-center px-6 py-4 text-gray-600 transition-all" id="nav-dashboard">
+                <i class="fas fa-th-large w-6"></i> Dashboard
+            </a>
+            <a href="#" onclick="switchSection('items')" class="sidebar-link flex items-center px-6 py-4 text-gray-600 transition-all" id="nav-items">
+                <i class="fas fa-box-open w-6"></i> Items Database
+            </a>
+            <a href="#" onclick="switchSection('users')" class="sidebar-link flex items-center px-6 py-4 text-gray-600 transition-all" id="nav-users">
+                <i class="fas fa-users w-6"></i> User Management
+            </a>
+            <a href="#" onclick="switchSection('analytics')" class="sidebar-link flex items-center px-6 py-4 text-gray-600 transition-all" id="nav-analytics">
+                <i class="fas fa-chart-line w-6"></i> Reports
+            </a>
+        </nav>
+        <div class="p-6 border-t">
+            <button class="flex items-center gap-2 text-gray-500 hover:text-red-600 transition-colors w-full">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen">
+        <!-- Top Header -->
+        <header class="h-20 bg-white border-b flex items-center justify-between px-8">
+            <div>
+                <h2 id="section-title" class="text-xl font-bold text-gray-800">Dashboard Overview</h2>
+                <p id="section-desc" class="text-sm text-gray-500">Live monitoring of Lost & Found activities</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <i class="fas fa-bell text-gray-400 cursor-pointer text-lg"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 w-2 h-2 rounded-full border border-white"></span>
+                </div>
+                <div class="flex items-center gap-3 pl-4 border-l">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-bold text-gray-800">Admin User</p>
+                        <p class="text-xs text-[#4CAF50]">Super Administrator</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-[#007BFF] flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
+                        A
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Scrollable content -->
+        <div class="flex-1 overflow-y-auto p-8">
+            
+            <!-- SECTION: DASHBOARD -->
+            <div id="section-dashboard" class="space-y-8 fade-in">
+                <!-- Stat Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-b-4 border-b-[#007BFF]">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Users</p>
+                        <h3 class="text-3xl font-black text-gray-800 mt-1" id="stat-users">0</h3>
+                        <div class="mt-4 flex items-center text-green-500 text-xs font-bold">
+                            <i class="fas fa-arrow-up mr-1"></i> 4 New this week
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-b-4 border-b-[#4CAF50]">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Found Items</p>
+                        <h3 class="text-3xl font-black text-gray-800 mt-1" id="stat-found">0</h3>
+                        <div class="mt-4 flex items-center text-blue-500 text-xs font-bold">
+                            <i class="fas fa-info-circle mr-1"></i> Active inventory
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-b-4 border-b-orange-400">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Pending Claims</p>
+                        <h3 class="text-3xl font-black text-gray-800 mt-1" id="stat-pending">12</h3>
+                        <div class="mt-4 flex items-center text-orange-500 text-xs font-bold">
+                            <i class="fas fa-clock mr-1"></i> Needs verification
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-b-4 border-b-purple-400">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Success Rate</p>
+                        <h3 class="text-3xl font-black text-gray-800 mt-1">84%</h3>
+                        <div class="mt-4 flex items-center text-purple-500 text-xs font-bold">
+                            <i class="fas fa-check-double mr-1"></i> Items returned
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h4 class="font-bold text-gray-800 mb-4">Inventory Breakdown</h4>
+                        <canvas id="inventoryChart" height="150"></canvas>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h4 class="font-bold text-gray-800 mb-4">Weekly User Registrations</h4>
+                        <canvas id="userChart" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: USERS (Aligns with your SQL table) -->
+            <div id="section-users" class="hidden space-y-6 fade-in">
+                <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="relative w-72">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="user-search" oninput="searchUsers()" placeholder="Search username or email..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all">
+                    </div>
+                    <button onclick="openUserModal('add')" class="btn-blue px-6 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-blue-100 transition-all">
+                        <i class="fas fa-user-plus text-sm"></i> Create New User
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-[11px] uppercase text-gray-400 tracking-widest">
+                            <tr>
+                                <th class="px-8 py-4">User ID</th>
+                                <th class="px-8 py-4">User Identity</th>
+                                <th class="px-8 py-4">Role</th>
+                                <th class="px-8 py-4">Joined Date</th>
+                                <th class="px-8 py-4 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body" class="divide-y divide-gray-50">
+                            <!-- JS injected rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION: ITEMS (CRUD) -->
+            <div id="section-items" class="hidden space-y-6 fade-in">
+                <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="flex gap-4">
+                        <select id="item-filter-status" onchange="renderItems()" class="bg-gray-50 border-none px-4 py-2 rounded-lg outline-none text-sm font-medium">
+                            <option value="all">All Items</option>
+                            <option value="Found">Found</option>
+                            <option value="Claimed">Claimed</option>
+                        </select>
+                    </div>
+                    <button onclick="openItemModal()" class="btn-green px-6 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-green-100 transition-all">
+                        <i class="fas fa-plus text-sm"></i> Log Found Item
+                    </button>
+                </div>
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-[11px] uppercase text-gray-400 tracking-widest">
+                            <tr>
+                                <th class="px-8 py-4">Item Name</th>
+                                <th class="px-8 py-4">Category</th>
+                                <th class="px-8 py-4">Location</th>
+                                <th class="px-8 py-4">Status</th>
+                                <th class="px-8 py-4 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="item-table-body" class="divide-y divide-gray-50">
+                            <!-- JS injected rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal: User Form -->
+    <div id="user-modal" class="modal">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="p-6 bg-[#007BFF] text-white flex justify-between items-center">
+                <h3 id="user-modal-title" class="text-xl font-bold">Add User</h3>
+                <button onclick="closeModal('user-modal')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form id="user-form" class="p-8 space-y-4">
+                <input type="hidden" id="edit-user-id">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Username</label>
+                    <input type="text" id="user-username" required class="w-full px-4 py-2 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-400 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Email Address</label>
+                    <input type="email" id="user-email" required class="w-full px-4 py-2 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-400 outline-none">
+                </div>
+                <div id="password-group">
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Password</label>
+                    <input type="password" id="user-password" class="w-full px-4 py-2 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-400 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">System Role</label>
+                    <select id="user-role" class="w-full px-4 py-2 bg-gray-50 border rounded-xl outline-none">
+                        <option value="user">Standard User</option>
+                        <option value="admin">Administrator</option>
+                    </select>
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeModal('user-modal')" class="flex-1 py-3 font-bold text-gray-500 hover:bg-gray-50 rounded-xl transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 py-3 font-bold btn-blue rounded-xl shadow-lg shadow-blue-100 transition-all">Save Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Item Form -->
+    <div id="item-modal" class="modal">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="p-6 bg-[#4CAF50] text-white flex justify-between items-center">
+                <h3 id="item-modal-title" class="text-xl font-bold">Item Details</h3>
+                <button onclick="closeModal('item-modal')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form id="item-form" class="p-8 space-y-4">
+                <input type="hidden" id="edit-item-id">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Item Name</label>
+                    <input type="text" id="item-name" required class="w-full px-4 py-2 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Category</label>
+                        <select id="item-category" class="w-full px-4 py-2 bg-gray-50 border rounded-xl outline-none">
+                            <option>Electronics</option>
+                            <option>Wallet/ID</option>
+                            <option>Keys</option>
+                            <option>Personal Effects</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Status</label>
+                        <select id="item-status" class="w-full px-4 py-2 bg-gray-50 border rounded-xl outline-none">
+                            <option value="Found">Found</option>
+                            <option value="Claimed">Claimed</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Location Found</label>
+                    <input type="text" id="item-location" required class="w-full px-4 py-2 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none">
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeModal('item-modal')" class="flex-1 py-3 font-bold text-gray-500 hover:bg-gray-50 rounded-xl transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 py-3 font-bold btn-green rounded-xl shadow-lg shadow-green-100 transition-all">Log Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-10 right-10 transform translate-y-20 opacity-0 bg-gray-800 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300 z-[2000]">
+        <i class="fas fa-check-circle text-[#4CAF50]"></i>
+        <span id="toast-msg">Action Successful!</span>
+    </div>
 
     <script>
-        // Initialize EmailJS
-        emailjs.init("ieCJeX-5LsiuaA20c");
+        // Mock State - Reflects your SQL Database Table
+        let users = [
+            { user_id: 1, username: "JohnDoe", email: "john@example.com", role: "admin", created_at: "2023-11-20 10:30:00" },
+            { user_id: 2, username: "Alice_Smith", email: "alice@foundit.com", role: "user", created_at: "2023-12-05 14:15:00" },
+            { user_id: 3, username: "Bob_Ross", email: "bob@happytrees.com", role: "user", created_at: "2024-01-12 09:00:00" }
+        ];
 
-        // Modal functionality for footer links
-        const modalBackdrop = document.getElementById('modalBackdrop');
-        const privacyModal = document.getElementById('privacyModal');
-        const serviceModal = document.getElementById('serviceModal');
-        const termsModal = document.getElementById('termsModal');
-        const privacyLink = document.getElementById('privacyLink');
-        const serviceLink = document.getElementById('serviceLink');
-        const termsLink = document.getElementById('termsLink');
+        let items = [
+            { id: 101, name: "iPhone 13 Pro", category: "Electronics", location: "Library Floor 2", status: "Found" },
+            { id: 102, name: "Brown Leather Wallet", category: "Wallet/ID", location: "Campus Cafeteria", status: "Found" },
+            { id: 103, name: "Student ID Card", category: "Wallet/ID", location: "Science Block", status: "Claimed" }
+        ];
 
-        // Open modal functions
-        function openModal(modal) {
-            modalBackdrop.style.display = 'block';
-            modal.style.display = 'block';
-            document.body.classList.add('modal-open');
-        }
-
-        function closeModals() {
-            modalBackdrop.style.display = 'none';
-            privacyModal.style.display = 'none';
-            serviceModal.style.display = 'none';
-            termsModal.style.display = 'none';
-            document.body.classList.remove('modal-open');
-        }
-
-        // Event listeners for footer links
-        privacyLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            openModal(privacyModal);
-        });
-
-        serviceLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            openModal(serviceModal);
-        });
-
-        termsLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            openModal(termsModal);
-        });
-
-        // Close modals
-        modalBackdrop.addEventListener('click', closeModals);
-        
-        document.querySelectorAll('.close-btn').forEach(btn => {
-            btn.addEventListener('click', closeModals);
-        });
-
-        // Close with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeModals();
-            }
-        });
-
-        // Function to update avatars in header
-        function updateHeaderAvatars(avatarUrl) {
-            const accountIconImage = document.getElementById('accountIconImage');
-            const accountIconFallback = document.getElementById('accountIconFallback');
-            const dropdownAvatarImage = document.getElementById('dropdownAvatarImage');
-            const dropdownAvatarFallback = document.getElementById('dropdownAvatarFallback');
+        // 1. NAVIGATION & UI
+        function switchSection(sectionId) {
+            document.querySelectorAll('main > div > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(`section-${sectionId}`).classList.remove('hidden');
             
-            if (avatarUrl && avatarUrl !== '') {
-                // Update account icon
-                accountIconImage.src = avatarUrl;
-                accountIconImage.style.display = 'block';
-                accountIconFallback.style.display = 'none';
-                
-                // Update dropdown avatar
-                dropdownAvatarImage.src = avatarUrl;
-                dropdownAvatarImage.style.display = 'block';
-                dropdownAvatarFallback.style.display = 'none';
+            document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+            document.getElementById(`nav-${sectionId}`).classList.add('active');
+
+            const titles = { dashboard: "Dashboard Overview", users: "User Database Management", items: "Lost & Found Inventory", analytics: "System Analytics" };
+            document.getElementById('section-title').innerText = titles[sectionId];
+            
+            renderData();
+        }
+
+        function renderData() {
+            renderUsers();
+            renderItems();
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('stat-users').innerText = users.length;
+            document.getElementById('stat-found').innerText = items.filter(i => i.status === 'Found').length;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.getElementById('user-form').reset();
+            document.getElementById('item-form').reset();
+        }
+
+        // 2. USER MANAGEMENT (CRUD)
+        function renderUsers(data = users) {
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = data.map(user => `
+                <tr class="hover:bg-blue-50/20 transition-all">
+                    <td class="px-8 py-5 text-xs font-black text-gray-400">#UID-${user.user_id}</td>
+                    <td class="px-8 py-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-[#007BFF]">
+                                ${user.username.charAt(0)}
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-800">${user.username}</p>
+                                <p class="text-xs text-gray-400">${user.email}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-8 py-5">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${user.role === 'admin' ? 'bg-blue-100 text-[#007BFF]' : 'bg-gray-100 text-gray-500'}">
+                            ${user.role}
+                        </span>
+                    </td>
+                    <td class="px-8 py-5 text-sm text-gray-500">${user.created_at.split(' ')[0]}</td>
+                    <td class="px-8 py-5">
+                        <div class="flex justify-center gap-3">
+                            <button onclick="editUser(${user.user_id})" class="w-8 h-8 rounded-lg bg-blue-50 text-[#007BFF] hover:bg-[#007BFF] hover:text-white transition-all"><i class="fas fa-edit text-xs"></i></button>
+                            <button onclick="deleteUser(${user.user_id})" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all"><i class="fas fa-trash text-xs"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openUserModal(mode, id = null) {
+            const modal = document.getElementById('user-modal');
+            const pwdGroup = document.getElementById('password-group');
+            document.getElementById('user-modal-title').innerText = mode === 'add' ? 'Create New User' : 'Update User Account';
+            
+            if(mode === 'edit') {
+                const user = users.find(u => u.user_id === id);
+                document.getElementById('edit-user-id').value = user.user_id;
+                document.getElementById('user-username').value = user.username;
+                document.getElementById('user-email').value = user.email;
+                document.getElementById('user-role').value = user.role;
+                pwdGroup.style.display = 'none'; // Hide password during edit for demo
             } else {
-                // Show fallback icons if no avatar
-                accountIconImage.style.display = 'none';
-                accountIconFallback.style.display = 'block';
-                dropdownAvatarImage.style.display = 'none';
-                dropdownAvatarFallback.style.display = 'block';
+                document.getElementById('edit-user-id').value = '';
+                pwdGroup.style.display = 'block';
             }
+            modal.classList.add('active');
         }
 
-        // Function to update user info
-        function updateUserInfo(username, email) {
-            const usernameElement = document.getElementById('username');
-            const useremailElement = document.getElementById('useremail');
-            
-            if (username) {
-                usernameElement.textContent = username;
-            }
-            
-            if (email) {
-                useremailElement.textContent = email;
-            }
-        }
-
-        // Function to fetch user profile from database
-        async function fetchUserProfile() {
-            try {
-                const token = localStorage.getItem('authToken');
-                if (!token) {
-                    console.log('No authentication token found');
-                    return null;
-                }
-
-                // Fetch user profile from your backend API
-                const response = await fetch('http://localhost:3000/api/profile', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user profile');
-                }
-
-                const result = await response.json();
-                
-                if (result.success) {
-                    return result.user;
-                } else {
-                    throw new Error(result.message || 'Failed to fetch user profile');
-                }
-            } catch (error) {
-                console.error('Error fetching user profile:', error);
-                return null;
-            }
-        }
-
-        // Toggle account dropdown
-        document.getElementById('accountIcon').addEventListener('click', function(e) {
-            e.stopPropagation();
-            document.getElementById('accountDropdown').classList.toggle('active');
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const accountSection = document.getElementById('accountSection');
-            if (!accountSection.contains(event.target)) {
-                document.getElementById('accountDropdown').classList.remove('active');
-            }
-        });
-
-        // Mobile menu toggle
-        document.getElementById('hamburgerMenu').addEventListener('click', function() {
-            document.getElementById('mainNav').classList.toggle('active');
-        });
-
-        // Logout functionality
-        document.querySelector('.logout-btn').addEventListener('click', function(e) {
+        document.getElementById('user-form').onsubmit = (e) => {
             e.preventDefault();
-            // Clear any stored authentication data
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userId');
-            // Redirect to login page
-            window.location.href = 'login.html';
-        });
-
-        // Image preview functionality
-        document.getElementById('itemImage').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            const preview = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
-            
-            if (file) {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    preview.style.display = 'block';
-                }
-                
-                reader.readAsDataURL(file);
-            } else {
-                preview.style.display = 'none';
-            }
-        });
-
-        // Remove image functionality
-        document.getElementById('removeImage').addEventListener('click', function() {
-            document.getElementById('itemImage').value = '';
-            document.getElementById('imagePreview').style.display = 'none';
-        });
-
-        // Function to convert image to base64
-        function convertImageToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        // Form submission handler - FIXED WITH BETTER DEBUGGING
-        document.getElementById('itemForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            
-            // Validate form
-            if (!validateForm()) {
-                return;
-            }
-
-            // Show loading spinner
-            document.getElementById('loadingSpinner').style.display = 'block';
-
-            try {
-                // Get form data
-                const token = localStorage.getItem('authToken');
-                if (!token) {
-                    throw new Error('Please login to submit an item');
-                }
-
-                // Get all form values
-                const itemType = document.querySelector('input[name="itemType"]:checked').value;
-                const itemName = document.getElementById('itemName').value.trim();
-                const category = document.getElementById('category').value;
-                const description = document.getElementById('description').value.trim();
-                const location = document.getElementById('location').value.trim();
-                const date = document.getElementById('date').value;
-                const contactEmail = document.getElementById('contactEmail').value.trim();
-                const contactPhone = document.getElementById('contactPhone').value.trim();
-                const fileInput = document.getElementById('itemImage');
-                const hasImage = !!fileInput.files[0];
-
-                console.log('=== SUBMISSION STARTED ===');
-                console.log('Item Type:', itemType);
-                console.log('Item Name:', itemName);
-
-                // Collect form data for database
-                const formData = new FormData();
-                formData.append('itemType', itemType);
-                formData.append('itemName', itemName);
-                formData.append('category', category);
-                formData.append('description', description);
-                formData.append('location', location);
-                formData.append('date', date);
-                formData.append('contactEmail', contactEmail);
-                formData.append('contactPhone', contactPhone);
-                
-                // Add image if exists
-                if (fileInput.files[0]) {
-                    formData.append('itemImage', fileInput.files[0]);
-                }
-
-                // Step 1: Save item to database via API call
-                console.log('Saving to database...');
-                const dbResponse = await fetch('http://localhost:3000/api/items', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData
-                });
-
-                const dbResult = await dbResponse.json();
-                
-                if (!dbResponse.ok || !dbResult.success) {
-                    throw new Error(dbResult.message || 'Failed to save item to database');
-                }
-
-                console.log('✓ Database save successful:', dbResult);
-
-                // Step 2: Send email notification
-                console.log('Preparing to send email for', itemType, 'item...');
-                
-                // Create email data with SIMPLE structure
-                const emailData = {
-                    // Basic fields that should work with any template
-                    to_email: "lostnfoundhub1@gmail.com",
-                    from_name: "Lost & Found Portal",
-                    from_email: contactEmail,
-                    subject: `New ${itemType} Item: ${itemName}`,
-                    
-                    // Template variables
-                    item_type: itemType,  // Use snake_case for template
-                    item_name: itemName,
-                    category: category,
-                    description: description,
-                    location: location,
-                    date: date,
-                    contact_email: contactEmail,
-                    contact_phone: contactPhone,
-                    timestamp: new Date().toLocaleString(),
-                    has_image: hasImage ? "Yes" : "No",
-                    
-                    // For debugging
-                    _debug_itemType: itemType,
-                    _debug_status: "submitted"
-                };
-
-                console.log('Email data prepared:', emailData);
-
-                try {
-                    console.log('Attempting to send email via EmailJS...');
-                    
-                    // Test with a simpler template first
-                    const emailResult = await emailjs.send(
-                        'service_csp5v7g', 
-                        'template_ye5sd7p',  // Your template ID
-                        emailData
-                    );
-                    
-                    console.log('✓ Email sent successfully!');
-                    console.log('Email result:', {
-                        status: emailResult.status,
-                        text: emailResult.text
-                    });
-                    
-                } catch (emailError) {
-                    console.error('✗ Email sending failed:', emailError);
-                    console.error('Error details:', {
-                        status: emailError?.status,
-                        text: emailError?.text,
-                        message: emailError?.message
-                    });
-                    
-                    // Try alternative template if first one fails
-                    try {
-                        console.log('Trying alternative approach...');
-                        
-                        // Create simpler email data
-                        const simpleEmailData = {
-                            to_email: "lostnfoundhub1@gmail.com",
-                            from_name: "Lost & Found Portal",
-                            from_email: contactEmail,
-                            subject: `URGENT: ${itemType} Item Report - ${itemName}`,
-                            message: `
-                                IMPORTANT: ${itemType.toUpperCase()} ITEM REPORTED
-                                
-                                Item Details:
-                                - Type: ${itemType}
-                                - Name: ${itemName}
-                                - Category: ${category}
-                                - Description: ${description}
-                                - Location: ${location}
-                                - Date: ${date}
-                                
-                                Contact Information:
-                                - Email: ${contactEmail}
-                                - Phone: ${contactPhone}
-                                
-                                Report Time: ${new Date().toLocaleString()}
-                                ${hasImage ? "\nNote: Image was attached to the report." : ""}
-                            `
-                        };
-                        
-                        // Try with template_1 if available, or use default
-                        const fallbackResult = await emailjs.send(
-                            'service_csp5v7g',
-                            'template_1',  // Try default template
-                            simpleEmailData
-                        );
-                        
-                        console.log('✓ Fallback email sent successfully:', fallbackResult);
-                        
-                    } catch (fallbackError) {
-                        console.error('✗ Fallback email also failed:', fallbackError);
-                        // Continue anyway - database save was successful
-                    }
-                }
-
-                // Hide loading spinner
-                document.getElementById('loadingSpinner').style.display = 'none';
-
-                // Show success modal
-                document.getElementById('successModal').style.display = 'flex';
-
-                // Reset form
-                document.getElementById('itemForm').reset();
-                document.getElementById('imagePreview').style.display = 'none';
-                document.getElementById('date').valueAsDate = new Date();
-
-                console.log('=== SUBMISSION COMPLETED ===');
-
-            } catch (error) {
-                console.error('✗ Submission error:', error);
-                document.getElementById('loadingSpinner').style.display = 'none';
-                
-                if (error.message.includes('login') || error.message.includes('token')) {
-                    alert('Please login to submit an item');
-                    window.location.href = 'login.html';
-                } else {
-                    alert('Error: ' + error.message);
-                }
-            }
-        });
-
-        // Form validation function
-        function validateForm() {
-            let isValid = true;
-
-            // Reset error messages
-            document.querySelectorAll('.error-message').forEach(msg => {
-                msg.style.display = 'none';
-            });
-
-            // Validate item type
-            const itemType = document.querySelector('input[name="itemType"]:checked');
-            if (!itemType) { 
-                document.getElementById('itemType-error').style.display = 'block'; 
-                isValid = false; 
-            }
-
-            // Validate item name
-            const itemName = document.getElementById('itemName').value.trim();
-            if (!itemName) { 
-                document.getElementById('itemName-error').style.display = 'block'; 
-                isValid = false; 
-            }
-
-            // Validate category
-            const category = document.getElementById('category').value;
-            if (!category) { 
-                document.getElementById('category-error').style.display = 'block'; 
-                isValid = false; 
-            }
-
-            // Validate description
-            const description = document.getElementById('description').value.trim();
-            if (!description) { 
-                document.getElementById('description-error').style.display = 'block'; 
-                isValid = false; 
-            }
-
-            // Validate location
-            const location = document.getElementById('location').value.trim();
-            if (!location) { 
-                document.getElementById('location-error').style.display = 'block'; 
-                isValid = false; 
-            }
-
-            // Validate date
-            const date = document.getElementById('date').value;
-            if (!date) { 
-                document.getElementById('date-error').style.display = 'block'; 
-                isValid = false; 
-            }
-
-            // Validate email
-            const email = document.getElementById('contactEmail').value.trim();
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email || !emailRegex.test(email)) { 
-                document.getElementById('contactEmail-error').style.display = 'block'; 
-                isValid = false; 
-            }
-
-            // Validate phone
-            const phone = document.getElementById('contactPhone').value.trim();
-            const phoneRegex = /^\d{10}$/;
-            if (!phone || !phoneRegex.test(phone)) { 
-                document.getElementById('contactPhone-error').style.display = 'block'; 
-                isValid = false; 
-            }
-
-            return isValid;
-        }
-
-        // Close success modal when the OK button is clicked
-        document.getElementById('successButton').addEventListener('click', function() {
-            document.getElementById('successModal').style.display = 'none';
-        });
-
-        // Also close modal when clicking outside the modal content
-        document.getElementById('successModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.style.display = 'none';
-            }
-        });
-
-        // Set today's date as default
-        document.getElementById('date').valueAsDate = new Date();
-
-        // Test EmailJS function - Add this to test directly from console
-        window.testEmailJS = function(itemType = 'Lost') {
-            console.log('Testing EmailJS with item type:', itemType);
-            
-            const testData = {
-                to_email: "lostnfoundhub1@gmail.com",
-                from_name: "Test User",
-                from_email: "test@example.com",
-                subject: `TEST ${itemType} Item`,
-                item_type: itemType,
-                item_name: `Test ${itemType} Item`,
-                category: "Electronics",
-                description: `This is a test ${itemType.toLowerCase()} item description`,
-                location: "Test Location",
-                date: "2024-01-15",
-                contact_email: "test@example.com",
-                contact_phone: "1234567890",
-                timestamp: new Date().toLocaleString(),
-                has_image: "No"
+            const id = document.getElementById('edit-user-id').value;
+            const userData = {
+                username: document.getElementById('user-username').value,
+                email: document.getElementById('user-email').value,
+                role: document.getElementById('user-role').value
             };
 
-            emailjs.send('service_csp5v7g', 'template_ye5sd7p', testData)
-                .then(response => {
-                    console.log(`✓ ${itemType} test email sent:`, response);
-                    alert(`${itemType} test email sent successfully! Check your email.`);
-                })
-                .catch(error => {
-                    console.error(`✗ ${itemType} test email failed:`, error);
-                    alert(`${itemType} test email failed: ${error.text || error.message}`);
+            if(id) {
+                const idx = users.findIndex(u => u.user_id == id);
+                users[idx] = { ...users[idx], ...userData };
+                showToast("User details updated in database.");
+            } else {
+                const newId = users.length > 0 ? Math.max(...users.map(u => u.user_id)) + 1 : 1;
+                users.push({ 
+                    user_id: newId, 
+                    ...userData, 
+                    created_at: new Date().toISOString().replace('T', ' ').split('.')[0] 
                 });
+                showToast("New user added successfully.");
+            }
+            closeModal('user-modal');
+            renderUsers();
         };
 
-        // Load user profile and check authentication on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            const token = localStorage.getItem('authToken');
-            if (!token) {
-                alert('Please login to submit an item');
-                window.location.href = 'login.html';
-                return;
+        function deleteUser(id) {
+            if(confirm("Permanently delete this user from database?")) {
+                users = users.filter(u => u.user_id !== id);
+                renderUsers();
+                showToast("User deleted.");
             }
+        }
 
-            try {
-                // Fetch user profile from database
-                const userProfile = await fetchUserProfile();
-                
-                if (userProfile) {
-                    // Update user info with data from database
-                    updateUserInfo(
-                        userProfile.username || userProfile.name || 'User',
-                        userProfile.email || 'user@example.com'
-                    );
-                    
-                    // Store user ID in localStorage
-                    if (userProfile.user_id) {
-                        localStorage.setItem('userId', userProfile.user_id);
-                    }
-                    
-                    // Update avatar with user's original image from database
-                    if (userProfile.avatar) {
-                        updateHeaderAvatars(userProfile.avatar);
-                    }
-                } else {
-                    // Fallback to demo data if fetch fails
-                    console.log('Using demo data as fallback');
-                    updateUserInfo('User', 'user@example.com');
-                }
-            } catch (error) {
-                console.error('Error loading user profile:', error);
-                // Fallback to demo data
-                updateUserInfo('User', 'user@example.com');
-            }
-        });
+        function searchUsers() {
+            const q = document.getElementById('user-search').value.toLowerCase();
+            const filtered = users.filter(u => u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+            renderUsers(filtered);
+        }
+
+        // 3. ITEM MANAGEMENT (CRUD)
+        function renderItems() {
+            const statusFilter = document.getElementById('item-filter-status').value;
+            let data = items;
+            if(statusFilter !== 'all') data = items.filter(i => i.status === statusFilter);
+
+            const tbody = document.getElementById('item-table-body');
+            tbody.innerHTML = data.map(item => `
+                <tr class="hover:bg-green-50/20 transition-all">
+                    <td class="px-8 py-5">
+                        <p class="font-bold text-gray-800">${item.name}</p>
+                        <p class="text-[10px] text-gray-400 font-mono">#ITEM-${item.id}</p>
+                    </td>
+                    <td class="px-8 py-5 text-sm text-gray-600">${item.category}</td>
+                    <td class="px-8 py-5 text-sm text-gray-500">${item.location}</td>
+                    <td class="px-8 py-5">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${item.status === 'Found' ? 'bg-green-100 text-[#4CAF50]' : 'bg-gray-100 text-gray-500'}">
+                            ${item.status}
+                        </span>
+                    </td>
+                    <td class="px-8 py-5 text-center">
+                        <div class="flex justify-center gap-3">
+                            <button onclick="deleteItem(${item.id})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openItemModal() {
+            document.getElementById('item-modal').classList.add('active');
+        }
+
+        document.getElementById('item-form').onsubmit = (e) => {
+            e.preventDefault();
+            const newItem = {
+                id: items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 101,
+                name: document.getElementById('item-name').value,
+                category: document.getElementById('item-category').value,
+                status: document.getElementById('item-status').value,
+                location: document.getElementById('item-location').value
+            };
+            items.push(newItem);
+            closeModal('item-modal');
+            renderItems();
+            showToast("Item logged in inventory.");
+        };
+
+        function deleteItem(id) {
+            items = items.filter(i => i.id !== id);
+            renderItems();
+            showToast("Item removed.");
+        }
+
+        // 4. CHARTS INITIALIZATION
+        function initCharts() {
+            const ctxInv = document.getElementById('inventoryChart').getContext('2d');
+            new Chart(ctxInv, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Electronics', 'Wallets', 'Keys', 'Other'],
+                    datasets: [{
+                        data: [12, 19, 3, 5],
+                        backgroundColor: ['#007BFF', '#4CAF50', '#FFC107', '#E2E8F0'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+            });
+
+            const ctxUser = document.getElementById('userChart').getContext('2d');
+            new Chart(ctxUser, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Registrations',
+                        data: [2, 5, 3, 8, 4, 1, 2],
+                        borderColor: '#4CAF50',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)'
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        window.onload = () => {
+            renderData();
+            initCharts();
+        };
     </script>
 </body>
 </html>
