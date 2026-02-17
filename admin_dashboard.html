@@ -3,129 +3,3784 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Lost & Found Portal</title>
-    <link rel="stylesheet" href="a_style.css"> 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- admin.js contains specific dashboard logic -->
-    <script src="admin.js" defer></script> 
+    <title>Lost & Found Hub - Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CSS Variables with Green & Blue Theme */
+        :root {
+            --primary: #4CAF50; /* Green */
+            --primary-dark: #388E3C;
+            --primary-light: #C8E6C9;
+            --secondary: #007BFF; /* Blue */
+            --secondary-dark: #0056b3;
+            --secondary-light: #B3D9FF;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --gray-light: #e9ecef;
+            --border-radius: 12px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f8fafc;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Layout */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 80px 1fr;
+            grid-template-areas: 
+                "sidebar header"
+                "sidebar main";
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            grid-area: header;
+            background: white;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-left h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .header-left p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 2px solid var(--gray-light);
+            border-radius: 50px;
+            width: 300px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            transition: var(--transition);
+        }
+
+        .user-profile:hover {
+            background: var(--gray-light);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .user-info h4 {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-info p {
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            grid-area: sidebar;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            color: var(--dark);
+            padding: 2rem 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 200;
+            border-right: 1px solid var(--gray-light);
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.03);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
+        }
+
+        .logo-text h2 {
+            font-weight: 700;
+            font-size: 1.5rem;
+            line-height: 1.2;
+            color: var(--secondary);
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .nav-menu {
+            padding: 2rem 0;
+        }
+
+        .nav-item {
+            list-style: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+
+        .nav-link:hover {
+            color: var(--secondary);
+            background: rgba(0, 123, 255, 0.05);
+            border-left-color: var(--secondary);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background: rgba(76, 175, 80, 0.1);
+            border-left-color: var(--primary);
+        }
+
+        .nav-link i {
+            font-size: 1.2rem;
+            width: 24px;
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--gray-light);
+            margin-top: auto;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            background: rgba(220, 53, 69, 0.2);
+        }
+
+        /* Main Content */
+        .main-content {
+            grid-area: main;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border-top: 4px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            /* background: linear-gradient(90deg, var(--primary), var(--secondary)); */
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card.lost::before {
+            background: linear-gradient(90deg, #ffc107, #fd7e14);
+        }
+
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-card .stat-icon {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+        }
+
+
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-change.positive {
+            color: var(--primary);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Table Container */
+        .table-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+            border: 1px solid var(--gray-light);
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.05), rgba(0, 123, 255, 0.05));
+        }
+
+        .table-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Search Bars in Sections */
+        .section-search {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .section-search input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .section-search input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .search-filter-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--gray-light);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .search-filter-btn:hover {
+            border-color: var(--primary);
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .search-filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark), #2e7d32);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, var(--secondary-dark), #004a99);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        /* Table */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.1), rgba(0, 123, 255, 0.1));
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--secondary);
+            font-size: 0.95rem;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--gray-light);
+            transition: var(--transition);
+        }
+
+        tbody tr:hover {
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        td {
+            padding: 1rem;
+            color: var(--dark);
+        }
+
+        .item-name {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .item-image {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-lost {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .status-found {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+
+        .status-claimed {
+            background: rgba(0, 123, 255, 0.1);
+            color: var(--secondary);
+            border: 1px solid rgba(0, 123, 255, 0.2);
+        }
+
+        /* User Status Badges */
+        .user-status-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .user-status-online {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+
+        .user-status-offline {
+            background: rgba(108, 117, 125, 0.1);
+            color: var(--gray);
+            border: 1px solid rgba(108, 117, 125, 0.2);
+        }
+
+        .user-status-banned {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        /* User Role Badges */
+        .user-role-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .user-role-admin {
+            background: rgba(0, 123, 255, 0.1);
+            color: var(--secondary);
+            border: 1px solid rgba(0, 123, 255, 0.2);
+        }
+
+        .user-role-user {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .user-role-moderator {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-light);
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        /* Forms */
+        .form-container {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid var(--gray-light);
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease;
+            border: 2px solid var(--primary);
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.05), rgba(0, 123, 255, 0.05));
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1rem 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+            border-left: 4px solid var(--primary);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .toast-success .toast-icon {
+            background: var(--primary);
+        }
+
+        .toast-error .toast-icon {
+            background: var(--danger);
+        }
+
+        .toast-content h4 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--dark);
+        }
+
+        .toast-content p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* No Results Message */
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--gray-light);
+        }
+
+        /* User Avatar */
+        .user-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        /* User Details Card */
+        .user-details-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--gray-light);
+        }
+
+        .user-details-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .user-details-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .user-details-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--secondary);
+        }
+
+        .user-details-info p {
+            color: var(--gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .user-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .user-detail-item {
+            padding: 0.75rem;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        .user-detail-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .user-detail-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 1200px) {
+            .search-box input {
+                width: 250px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "header"
+                    "main";
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                width: 280px;
+                z-index: 300;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 250;
+            }
+
+            .overlay.active {
+                display: block;
+            }
+
+            .section-search {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-filters {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 1rem;
+            }
+
+            .header-right {
+                gap: 1rem;
+            }
+
+            .search-box input {
+                width: 200px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .table-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .user-details-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                display: none;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.8rem;
+            }
+
+            th, td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .section-search {
+                padding: 0.75rem;
+            }
+
+            .search-filters {
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mb-3 { margin-bottom: 1.5rem; }
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mt-3 { margin-top: 1.5rem; }
+        .d-none { display: none; }
+        .d-flex { display: flex; }
+        .align-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .w-100 { width: 100%; }
+    </style>
 </head>
 <body>
-    <header>
-        <div class="container header-content">
-            <div class="logo">
-                <i class="fas fa-search-location"></i> Lost & Found - Admin Hub
+    <div class="dashboard-container">
+        <!-- Overlay for mobile sidebar -->
+        <div class="overlay"></div>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h2 id="page-title">Welcome back, Admin</h2>
+                <!-- <p id="page-subtitle">Welcome back, Admin</p> -->
             </div>
-            <nav>
+            <div class="header-right">
+                <button class="mobile-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="user-profile">
+                    <div class="user-avatar">A</div>
+                    <div class="user-info">
+                        <h4>Admin User</h4>
+                        <p>Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-search-location"></i>
+                </div>
+                <div class="logo-text">
+                    <h2>Lost & Found Hub</h2>
+                    <p>Admin Dashboard</p>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
                 <ul>
-                    <li><a href="#"><i class="fas fa-bell"></i></a></li>
-                    <!-- <li><a href="../index.html"><i class="fas fa-home"></i> Home</a></li> -->
-                    <!-- Placeholder for Login/Profile link - updated by main.js -->
-                    <li><span id="authNavPlaceholder"></span></li>
-                    <li><a href="login.html"><button id="logoutButton" class="btn btn-secondary">Logout</button></a></li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="items">
+                            <i class="fas fa-box-open"></i>
+                            <span>Items Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="categories">
+                            <i class="fas fa-tags"></i>
+                            <span>Categories</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="users">
+                            <i class="fas fa-users"></i>
+                            <span>Users</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="analytics">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="reports">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
-            <div class="hamburger-menu">
-                <i class="fas fa-bars"></i>
+
+            <div class="sidebar-footer">
+                <button class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
             </div>
-        </div>
-    </header>
+        </aside>
 
-    <main class="container admin-dashboard-page">
-        <section class="dashboard-overview">
-            <h1><i class="fas fa-cogs"></i> Admin Dashboard</h1>
-            <p>Welcome to the administration panel. Manage reported items and claims.</p>
-        </section>
-
-        <section class="admin-panel-section" id="itemManagementSection">
-            <h2><i class="fas fa-box-open"></i> Item Management</h2>
-            <div class="filter-search-section">
-                <div class="search-bar">
-                    <input type="text" id="adminSearchKeyword" placeholder="Search items by name, location..." />
-                    <button class="btn btn-primary" id="adminSearchBtn"><i class="fas fa-search"></i> Search</button>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <!-- Dashboard Search Bar -->
+                <div class="section-search">
+                    <input type="text" id="dashboardSearch" placeholder="Search items, users, activity...">
+                    <div class="search-filters">
+                        <button class="search-filter-btn active" data-filter="all">All</button>
+                        <button class="search-filter-btn" data-filter="items">Items</button>
+                        <button class="search-filter-btn" data-filter="activity">Activity</button>
+                    </div>
                 </div>
-                <div class="filters">
-                    <select id="adminItemTypeFilter">
-                        <option value="">All Types</option>
-                        <option value="Lost">Lost</option>
-                        <option value="Found">Found</option>
-                    </select>
-                    <select id="adminItemStatusFilter">
-                        <option value="">All Statuses</option>
-                        <option value="Active">Active</option>
-                        <option value="Claimed">Claimed</option>
-                        <option value="Resolved">Resolved</option>
-                        <option value="Archived">Archived</option> <!-- Added 'Archived' for completeness -->
-                    </select>
-                    <button class="btn btn-outline" id="adminResetFiltersBtn"><i class="fas fa-redo"></i> Reset</button>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="totalItemsCount">156</div>
+                                <div class="stat-label">Total Items</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>12% from last month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="lostItemsCount">42</div>
+                                <div class="stat-label">Lost Items</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>5% from last month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="foundItemsCount">98</div>
+                                <div class="stat-label">Found Items</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>18% from last month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="claimedItemsCount">16</div>
+                                <div class="stat-label">Claimed Items</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>8% from last month</span>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">Recent Items</h3>
+                        <div class="table-actions">
+                            <button class="btn btn-secondary btn-small" id="filterRecent">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                            <button class="btn btn-primary btn-small" id="addItemBtn">
+                                <i class="fas fa-plus"></i> Add Item
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentItemsTable">
+                                <!-- Items populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="dashboardNoResults" class="no-results d-none">
+                        <i class="fas fa-search"></i>
+                        <h3>No items found</h3>
+                        <p>Try changing your search terms or filters</p>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Status Distribution</h3>
+                            <select class="form-control" style="width: auto;">
+                                <option>Last 7 days</option>
+                                <option>Last 30 days</option>
+                                <option>Last 90 days</option>
+                            </select>
+                        </div>
+                        <canvas id="statusChart" height="250"></canvas>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Monthly Reports</h3>
+                            <select class="form-control" style="width: auto;">
+                                <option>2024</option>
+                                <option>2023</option>
+                                <option>2022</option>
+                            </select>
+                        </div>
+                        <canvas id="monthlyChart" height="250"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Items Management Section -->
+            <section id="items" class="section">
+                <!-- Items Search Bar -->
+                <div class="section-search">
+                    <input type="text" id="itemsSearch" placeholder="Search items by name, category, location...">
+                    <div class="search-filters">
+                        <button class="search-filter-btn active" data-status="all">All Items</button>
+                        <button class="search-filter-btn" data-status="lost">Lost</button>
+                        <button class="search-filter-btn" data-status="found">Found</button>
+                        <button class="search-filter-btn" data-status="claimed">Claimed</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">All Items</h3>
+                        <div class="table-actions">
+                            <div class="d-flex align-center">
+                                <select id="itemsCategoryFilter" class="form-control" style="width: 150px;">
+                                    <option value="">All Categories</option>
+                                    <!-- Categories populated by JS -->
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" id="addNewItemBtn">
+                                <i class="fas fa-plus"></i> Add New Item
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allItemsTable">
+                                <!-- Items populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="itemsNoResults" class="no-results d-none">
+                        <i class="fas fa-search"></i>
+                        <h3>No items found</h3>
+                        <p>Try changing your search terms or filters</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Categories Section -->
+            <section id="categories" class="section">
+                <!-- Categories Search Bar -->
+                <div class="section-search">
+                    <input type="text" id="categoriesSearch" placeholder="Search categories by name, description...">
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">Categories</h3>
+                        <button class="btn btn-primary" id="addCategoryBtn">
+                            <i class="fas fa-plus"></i> Add Category
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Items Count</th>
+                                    <th>Color</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTable">
+                                <!-- Categories populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="categoriesNoResults" class="no-results d-none">
+                        <i class="fas fa-search"></i>
+                        <h3>No categories found</h3>
+                        <p>Try changing your search terms</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users" class="section">
+                <!-- Users Search Bar -->
+                <div class="section-search">
+                    <input type="text" id="usersSearch" placeholder="Search users by name, email, role...">
+                    <div class="search-filters">
+                        <button class="search-filter-btn active" data-user-role="all">All Users</button>
+                        <button class="search-filter-btn" data-user-role="admin">Admins</button>
+                        <button class="search-filter-btn" data-user-role="user">Users</button>
+                        <button class="search-filter-btn" data-user-role="moderator">Moderators</button>
+                    </div>
+                </div>
+
+                <!-- User Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="totalUsersCount">0</div>
+                                <div class="stat-label">Total Users</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>8% from last week</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="onlineUsersCount">0</div>
+                                <div class="stat-label">Online Now</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Active now</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="newUsersCount">0</div>
+                                <div class="stat-label">New This Week</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>12% from last week</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="activeUsersCount">0</div>
+                                <div class="stat-label">Active Today</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>15% from yesterday</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Details Section (Initially Hidden) -->
+                <div id="userDetailsContainer" class="d-none">
+                    <div class="user-details-card">
+                        <div class="user-details-header">
+                            <div class="user-details-avatar" id="userDetailAvatar">JD</div>
+                            <div class="user-details-info">
+                                <h3 id="userDetailName">John Doe</h3>
+                                <p id="userDetailEmail">john.doe@example.com</p>
+                                <div class="d-flex align-center gap-2">
+                                    <span id="userDetailRole" class="user-role-badge user-role-admin">Admin</span>
+                                    <span id="userDetailStatus" class="user-status-badge user-status-online">Online</span>
+                                </div>
+                            </div>
+                            <div style="margin-left: auto;">
+                                <button class="btn btn-secondary" id="closeUserDetails">
+                                    <i class="fas fa-times"></i> Close
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="user-details-grid">
+                            <div class="user-detail-item">
+                                <div class="user-detail-label">User ID</div>
+                                <div class="user-detail-value" id="userDetailId">#001</div>
+                            </div>
+                            <div class="user-detail-item">
+                                <div class="user-detail-label">Account Created</div>
+                                <div class="user-detail-value" id="userDetailCreated">Jan 15, 2024</div>
+                            </div>
+                            <div class="user-detail-item">
+                                <div class="user-detail-label">Last Login</div>
+                                <div class="user-detail-value" id="userDetailLastLogin">2 hours ago</div>
+                            </div>
+                            <div class="user-detail-item">
+                                <div class="user-detail-label">Items Reported</div>
+                                <div class="user-detail-value" id="userDetailItemsReported">12 items</div>
+                            </div>
+                            <div class="user-detail-item">
+                                <div class="user-detail-label">Items Claimed</div>
+                                <div class="user-detail-value" id="userDetailItemsClaimed">5 items</div>
+                            </div>
+                            <div class="user-detail-item">
+                                <div class="user-detail-label">IP Address</div>
+                                <div class="user-detail-value" id="userDetailIP">192.168.1.105</div>
+                            </div>
+                            <div class="user-detail-item">
+                                <div class="user-detail-label">Location</div>
+                                <div class="user-detail-value" id="userDetailLocation">New York, USA</div>
+                            </div>
+                            <div class="user-detail-item">
+                                <div class="user-detail-label">Browser</div>
+                                <div class="user-detail-value" id="userDetailBrowser">Chrome 120</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions mt-3">
+                            <button class="btn btn-secondary" onclick="editUser(currentUserId)">
+                                <i class="fas fa-edit"></i> Edit User
+                            </button>
+                            <button class="btn btn-danger" onclick="confirmDelete('user', currentUserId)">
+                                <i class="fas fa-trash"></i> Delete User
+                            </button>
+                            <button class="btn btn-primary" id="sendMessageBtn">
+                                <i class="fas fa-envelope"></i> Send Message
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">All Users</h3>
+                        <div class="table-actions">
+                            <button class="btn btn-secondary" id="exportUsersBtn">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button class="btn btn-primary" id="addUserBtn">
+                                <i class="fas fa-user-plus"></i> Add User
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Last Login</th>
+                                    <th>Items</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <!-- Users populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="usersNoResults" class="no-results d-none">
+                        <i class="fas fa-search"></i>
+                        <h3>No users found</h3>
+                        <p>Try changing your search terms or filters</p>
+                    </div>
+                </div>
+
+                <!-- User Activity Chart -->
+                <div class="chart-card mt-3">
+                    <h3 class="chart-title mb-3">User Activity (Last 7 Days)</h3>
+                    <canvas id="userActivityChart" height="300"></canvas>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics" class="section">
+                <!-- Analytics Search Bar -->
+                <div class="section-search">
+                    <input type="text" id="analyticsSearch" placeholder="Search activity logs, users, actions...">
+                    <div class="search-filters">
+                        <button class="search-filter-btn active" data-activity="all">All Activity</button>
+                        <button class="search-filter-btn" data-activity="reports">Reports</button>
+                        <button class="search-filter-btn" data-activity="updates">Updates</button>
+                        <button class="search-filter-btn" data-activity="additions">Additions</button>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3 class="chart-title mb-3">Items by Category</h3>
+                        <canvas id="categoryChart" height="300"></canvas>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3 class="chart-title mb-3">Weekly Activity</h3>
+                        <canvas id="weeklyChart" height="300"></canvas>
+                    </div>
+                </div>
+                
+                <div class="table-container mt-3">
+                    <div class="table-header">
+                        <h3 class="table-title">Recent Activity Log</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Details</th>
+                                    <th>IP Address</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activityTable">
+                                <!-- Activity logs populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="analyticsNoResults" class="no-results d-none">
+                        <i class="fas fa-search"></i>
+                        <h3>No activity found</h3>
+                        <p>Try changing your search terms or filters</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Item Form (Initially Hidden) -->
+            <div id="itemFormContainer" class="form-container d-none">
+                <h2 class="form-title" id="formTitle">Add New Item</h2>
+                <form id="itemForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemName" class="form-label">Item Name *</label>
+                            <input type="text" id="itemName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemCategory" class="form-label">Category *</label>
+                            <select id="itemCategory" class="form-control" required>
+                                <!-- Categories populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemStatus" class="form-label">Status *</label>
+                            <select id="itemStatus" class="form-control" required>
+                                <option value="lost">Lost</option>
+                                <option value="found">Found</option>
+                                <option value="claimed">Claimed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemDate" class="form-label">Date *</label>
+                            <input type="date" id="itemDate" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemLocation" class="form-label">Location *</label>
+                            <input type="text" id="itemLocation" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemImage" class="form-label">Image URL</label>
+                            <input type="url" id="itemImage" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="itemDescription" class="form-label">Description *</label>
+                        <textarea id="itemDescription" class="form-control" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelForm">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="submitForm">Save Item</button>
+                    </div>
+                </form>
             </div>
 
-            <div class="table-responsive">
-                <table id="adminItemsTable">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Type</th>
-                            <th>Name</th>
-                            <th>Category</th>
-                            <th>Location</th>
-                            <th>Date</th>
-                            <th>Reporter Email</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="9" class="loading-message">Loading items...</td></tr>
-                    </tbody>
-                </table>
+            <!-- Category Form (Initially Hidden) -->
+            <div id="categoryFormContainer" class="form-container d-none">
+                <h2 class="form-title" id="categoryFormTitle">Add New Category</h2>
+                <form id="categoryForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="categoryName" class="form-label">Category Name *</label>
+                            <input type="text" id="categoryName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="categoryColor" class="form-label">Color</label>
+                            <input type="color" id="categoryColor" class="form-control" value="#4CAF50">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="categoryDescription" class="form-label">Description</label>
+                            <textarea id="categoryDescription" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelCategoryForm">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="submitCategoryForm">Save Category</button>
+                    </div>
+                </form>
             </div>
-            <p id="noAdminItemsMessage" class="info-message" style="display:none;">No items found matching your criteria.</p>
-        </section>
 
-        <section class="admin-panel-section" id="claimManagementSection">
-            <h2><i class="fas fa-handshake"></i> Claim Management</h2>
-            <div class="table-responsive">
-                <table id="adminClaimsTable">
-                    <thead>
-                        <tr>
-                            <th>Claim ID</th>
-                            <th>Item Name</th>
-                            <th>Claimant Username</th>
-                            <th>Claim Details</th>
-                            <th>Claimed At</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="7" class="loading-message">Loading claims...</td></tr>
-                    </tbody>
-                </table>
+            <!-- User Form (Initially Hidden) -->
+            <div id="userFormContainer" class="form-container d-none">
+                <h2 class="form-title" id="userFormTitle">Add New User</h2>
+                <form id="userForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userName" class="form-label">Full Name *</label>
+                            <input type="text" id="userName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="userEmail" class="form-label">Email Address *</label>
+                            <input type="email" id="userEmail" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userRole" class="form-label">Role *</label>
+                            <select id="userRole" class="form-control" required>
+                                <option value="user">User</option>
+                                <option value="moderator">Moderator</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="userStatus" class="form-label">Status *</label>
+                            <select id="userStatus" class="form-control" required>
+                                <option value="online">Online</option>
+                                <option value="offline">Offline</option>
+                                <option value="banned">Banned</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userPhone" class="form-label">Phone Number</label>
+                            <input type="tel" id="userPhone" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="userLocation" class="form-label">Location</label>
+                            <input type="text" id="userLocation" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userNotes" class="form-label">Notes</label>
+                        <textarea id="userNotes" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelUserForm">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="submitUserForm">Save User</button>
+                    </div>
+                </form>
             </div>
-            <p id="noAdminClaimsMessage" class="info-message" style="display:none;">No claims found.</p>
-        </section>
-    </main>
+        </main>
+    </div>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 College Lost & Found Hub. All rights reserved.</p>
-            <div class="footer-links">
-                <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a> | <a href="#">Contact Us</a>
-            </div>
-        </div>
-    </footer>
-
-    <div id="actionModal" class="modal">
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
         <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h3 id="modalTitle">Confirm Action</h3>
-            <p id="modalMessage">Are you sure you want to perform this action?</p>
-            <div class="modal-buttons">
-                <button id="confirmActionButton" class="btn btn-primary">Confirm</button>
-                <button id="cancelActionButton" class="btn btn-outline">Cancel</button>
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Delete</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">Are you sure you want to delete this item? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelDelete">Cancel</button>
+                <button class="btn btn-danger" id="confirmDelete">Delete</button>
             </div>
         </div>
     </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        <div class="toast-content">
+            <h4 id="toastTitle">Success</h4>
+            <p id="toastMessage">Operation completed successfully!</p>
+        </div>
+    </div>
+
+    <script>
+        // Sample Data
+        let items = [
+            { id: 1, name: "iPhone 14 Pro", category: "Electronics", status: "found", date: "2024-01-15", location: "Main Lobby", description: "Space black iPhone with leather case", image: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
+            { id: 2, name: "Leather Wallet", category: "Personal Items", status: "lost", date: "2024-01-14", location: "Cafeteria", description: "Brown leather wallet with ID cards", image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
+            { id: 3, name: "Car Keys", category: "Keys", status: "found", date: "2024-01-13", location: "Parking Lot B", description: "Set of Toyota car keys with keychain", image: "https://images.unsplash.com/photo-1593016605825-8cfb4097c2af?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
+            { id: 4, name: "Laptop Bag", category: "Bags", status: "claimed", date: "2024-01-12", location: "Library", description: "Black laptop bag with Dell logo", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
+            { id: 5, name: "Water Bottle", category: "Others", status: "found", date: "2024-01-11", location: "Gym", description: "Stainless steel 1L water bottle", image: "https://images.unsplash.com/photo-1523362628745-0c100150b504?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
+            { id: 6, name: "Glasses", category: "Accessories", status: "lost", date: "2024-01-10", location: "Classroom 302", description: "Ray-Ban sunglasses with case", image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
+            { id: 7, name: "Textbook", category: "Books", status: "found", date: "2024-01-09", location: "Study Room", description: "Physics textbook with notes", image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
+            { id: 8, name: "Watch", category: "Accessories", status: "claimed", date: "2024-01-08", location: "Swimming Pool", description: "Silver wristwatch, waterproof", image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" }
+        ];
+
+        let categories = [
+            { id: 1, name: "Electronics", description: "Mobile phones, laptops, chargers", color: "#4CAF50", itemCount: 24 },
+            { id: 2, name: "Personal Items", description: "Wallets, keys, ID cards", color: "#007BFF", itemCount: 42 },
+            { id: 3, name: "Accessories", description: "Bags, glasses, watches", color: "#ffc107", itemCount: 31 },
+            { id: 4, name: "Clothing", description: "Jackets, hats, scarves", color: "#17a2b8", itemCount: 28 },
+            { id: 5, name: "Books", description: "Textbooks, notebooks, novels", color: "#6f42c1", itemCount: 15 },
+            { id: 6, name: "Others", description: "Miscellaneous items", color: "#6c757d", itemCount: 18 }
+        ];
+
+        // Users Database (Simulating real database)
+        let users = [
+            { 
+                id: 1, 
+                name: "John Doe", 
+                email: "john.doe@example.com", 
+                role: "admin", 
+                status: "online", 
+                lastLogin: "2024-01-15 10:30:00",
+                itemsReported: 12,
+                itemsClaimed: 5,
+                createdAt: "2023-12-01",
+                phone: "+1 (555) 123-4567",
+                location: "New York, USA",
+                ipAddress: "192.168.1.105",
+                browser: "Chrome 120",
+                notes: "System administrator"
+            },
+            { 
+                id: 2, 
+                name: "Sarah Smith", 
+                email: "sarah.smith@example.com", 
+                role: "moderator", 
+                status: "online", 
+                lastLogin: "2024-01-15 09:15:00",
+                itemsReported: 8,
+                itemsClaimed: 3,
+                createdAt: "2023-12-10",
+                phone: "+1 (555) 987-6543",
+                location: "Los Angeles, USA",
+                ipAddress: "192.168.1.102",
+                browser: "Firefox 115",
+                notes: "Content moderator"
+            },
+            { 
+                id: 3, 
+                name: "Michael Brown", 
+                email: "michael.brown@example.com", 
+                role: "user", 
+                status: "offline", 
+                lastLogin: "2024-01-14 16:45:00",
+                itemsReported: 5,
+                itemsClaimed: 2,
+                createdAt: "2024-01-05",
+                phone: "+1 (555) 456-7890",
+                location: "Chicago, USA",
+                ipAddress: "192.168.1.107",
+                browser: "Safari 17",
+                notes: "Regular user"
+            },
+            { 
+                id: 4, 
+                name: "Emma Wilson", 
+                email: "emma.wilson@example.com", 
+                role: "user", 
+                status: "online", 
+                lastLogin: "2024-01-15 11:20:00",
+                itemsReported: 3,
+                itemsClaimed: 1,
+                createdAt: "2024-01-08",
+                phone: "+1 (555) 234-5678",
+                location: "Miami, USA",
+                ipAddress: "192.168.1.108",
+                browser: "Chrome 119",
+                notes: "New user"
+            },
+            { 
+                id: 5, 
+                name: "David Johnson", 
+                email: "david.johnson@example.com", 
+                role: "user", 
+                status: "offline", 
+                lastLogin: "2024-01-13 14:30:00",
+                itemsReported: 7,
+                itemsClaimed: 4,
+                createdAt: "2023-12-15",
+                phone: "+1 (555) 876-5432",
+                location: "Seattle, USA",
+                ipAddress: "192.168.1.110",
+                browser: "Edge 120",
+                notes: "Active user"
+            },
+            { 
+                id: 6, 
+                name: "Lisa Anderson", 
+                email: "lisa.anderson@example.com", 
+                role: "moderator", 
+                status: "online", 
+                lastLogin: "2024-01-15 08:45:00",
+                itemsReported: 10,
+                itemsClaimed: 6,
+                createdAt: "2023-12-20",
+                phone: "+1 (555) 345-6789",
+                location: "Boston, USA",
+                ipAddress: "192.168.1.112",
+                browser: "Chrome 120",
+                notes: "Helpful moderator"
+            },
+            { 
+                id: 7, 
+                name: "Robert Garcia", 
+                email: "robert.garcia@example.com", 
+                role: "user", 
+                status: "banned", 
+                lastLogin: "2024-01-10 13:15:00",
+                itemsReported: 2,
+                itemsClaimed: 0,
+                createdAt: "2024-01-02",
+                phone: "+1 (555) 765-4321",
+                location: "Houston, USA",
+                ipAddress: "192.168.1.115",
+                browser: "Firefox 115",
+                notes: "Account suspended for violations"
+            },
+            { 
+                id: 8, 
+                name: "Jennifer Lee", 
+                email: "jennifer.lee@example.com", 
+                role: "user", 
+                status: "offline", 
+                lastLogin: "2024-01-14 20:10:00",
+                itemsReported: 6,
+                itemsClaimed: 3,
+                createdAt: "2023-12-25",
+                phone: "+1 (555) 987-1234",
+                location: "San Francisco, USA",
+                ipAddress: "192.168.1.118",
+                browser: "Safari 17",
+                notes: "Regular contributor"
+            }
+        ];
+
+        let activityLogs = [
+            { time: "10:30 AM", user: "John Doe", action: "Reported lost item", details: "Wallet in Cafeteria", ip: "192.168.1.105" },
+            { time: "9:15 AM", user: "Admin", action: "Updated item status", details: "Item #3 changed to 'Claimed'", ip: "192.168.1.100" },
+            { time: "Yesterday, 4:45 PM", user: "Sarah Smith", action: "Reported found item", details: "Keys in Parking Lot", ip: "192.168.1.102" },
+            { time: "Yesterday, 2:20 PM", user: "Admin", action: "Added new category", details: "Added 'Books' category", ip: "192.168.1.100" },
+            { time: "Jan 12, 11:10 AM", user: "Michael Brown", action: "Claimed item", details: "Successfully claimed laptop bag", ip: "192.168.1.107" },
+            { time: "Jan 11, 3:45 PM", user: "Admin", action: "Deleted expired item", details: "Removed old water bottle", ip: "192.168.1.100" },
+            { time: "Jan 10, 9:30 AM", user: "Emma Wilson", action: "Reported found item", details: "Found textbook in Study Room", ip: "192.168.1.108" },
+            { time: "Jan 9, 2:15 PM", user: "Admin", action: "Updated category", details: "Updated Electronics category", ip: "192.168.1.100" }
+        ];
+
+        // DOM Elements
+        const sections = document.querySelectorAll('.section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const recentItemsTable = document.getElementById('recentItemsTable');
+        const allItemsTable = document.getElementById('allItemsTable');
+        const categoriesTable = document.getElementById('categoriesTable');
+        const usersTable = document.getElementById('usersTable');
+        const activityTable = document.getElementById('activityTable');
+        const itemFormContainer = document.getElementById('itemFormContainer');
+        const categoryFormContainer = document.getElementById('categoryFormContainer');
+        const userFormContainer = document.getElementById('userFormContainer');
+        const userDetailsContainer = document.getElementById('userDetailsContainer');
+        const deleteModal = document.getElementById('deleteModal');
+        const toast = document.getElementById('toast');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const overlay = document.querySelector('.overlay');
+
+        // Search Elements
+        const globalSearch = document.getElementById('globalSearch');
+        const dashboardSearch = document.getElementById('dashboardSearch');
+        const itemsSearch = document.getElementById('itemsSearch');
+        const categoriesSearch = document.getElementById('categoriesSearch');
+        const usersSearch = document.getElementById('usersSearch');
+        const analyticsSearch = document.getElementById('analyticsSearch');
+        const itemsCategoryFilter = document.getElementById('itemsCategoryFilter');
+
+        // No results elements
+        const dashboardNoResults = document.getElementById('dashboardNoResults');
+        const itemsNoResults = document.getElementById('itemsNoResults');
+        const categoriesNoResults = document.getElementById('categoriesNoResults');
+        const usersNoResults = document.getElementById('usersNoResults');
+        const analyticsNoResults = document.getElementById('analyticsNoResults');
+
+        // User stats elements
+        const totalUsersCount = document.getElementById('totalUsersCount');
+        const onlineUsersCount = document.getElementById('onlineUsersCount');
+        const newUsersCount = document.getElementById('newUsersCount');
+        const activeUsersCount = document.getElementById('activeUsersCount');
+
+        // State variables
+        let currentItemId = null;
+        let currentCategoryId = null;
+        let currentUserId = null;
+        let isEditMode = false;
+        let deleteType = null;
+        
+        // Search filters state
+        let currentDashboardFilter = 'all';
+        let currentItemsStatus = 'all';
+        let currentUserRole = 'all';
+        let currentAnalyticsFilter = 'all';
+        let currentItemsCategory = '';
+
+        // Initialize the dashboard
+        function init() {
+            renderRecentItems();
+            renderAllItems();
+            renderCategories();
+            renderUsers();
+            renderActivityLogs();
+            populateCategoryDropdowns();
+            setupCharts();
+            setupEventListeners();
+            setTodayDate();
+            
+            // Initialize search functionality
+            initSearchFunctionality();
+            
+            // Update user stats
+            updateUserStats();
+        }
+
+        // Initialize search functionality
+        function initSearchFunctionality() {
+            // Global search event
+            globalSearch.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                
+                if (searchTerm.length > 0) {
+                    // Show relevant section based on search context
+                    const activeSection = document.querySelector('.section.active').id;
+                    
+                    // Perform search in current section
+                    switch(activeSection) {
+                        case 'dashboard':
+                            searchDashboard(searchTerm);
+                            break;
+                        case 'items':
+                            searchItems(searchTerm);
+                            break;
+                        case 'categories':
+                            searchCategories(searchTerm);
+                            break;
+                        case 'users':
+                            searchUsers(searchTerm);
+                            break;
+                        case 'analytics':
+                            searchAnalytics(searchTerm);
+                            break;
+                        default:
+                            // For other sections, search globally
+                            performGlobalSearch(searchTerm);
+                    }
+                } else {
+                    // If search is cleared, show all items
+                    resetSearch();
+                }
+            });
+            
+            // Dashboard search
+            dashboardSearch.addEventListener('input', (e) => {
+                searchDashboard(e.target.value.toLowerCase().trim());
+            });
+            
+            // Items search
+            itemsSearch.addEventListener('input', (e) => {
+                searchItems(e.target.value.toLowerCase().trim());
+            });
+            
+            // Categories search
+            categoriesSearch.addEventListener('input', (e) => {
+                searchCategories(e.target.value.toLowerCase().trim());
+            });
+            
+            // Users search
+            usersSearch.addEventListener('input', (e) => {
+                searchUsers(e.target.value.toLowerCase().trim());
+            });
+            
+            // Analytics search
+            analyticsSearch.addEventListener('input', (e) => {
+                searchAnalytics(e.target.value.toLowerCase().trim());
+            });
+            
+            // Category filter for items
+            itemsCategoryFilter.addEventListener('change', (e) => {
+                currentItemsCategory = e.target.value;
+                searchItems(itemsSearch.value.toLowerCase().trim());
+            });
+            
+            // Setup filter buttons
+            setupFilterButtons();
+        }
+
+        // Setup filter buttons
+        function setupFilterButtons() {
+            // Dashboard filter buttons
+            document.querySelectorAll('[data-filter]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const filter = e.target.getAttribute('data-filter');
+                    
+                    // Update active button
+                    document.querySelectorAll('[data-filter]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    
+                    currentDashboardFilter = filter;
+                    searchDashboard(dashboardSearch.value.toLowerCase().trim());
+                });
+            });
+            
+            // Items status filter buttons
+            document.querySelectorAll('[data-status]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const status = e.target.getAttribute('data-status');
+                    
+                    // Update active button
+                    document.querySelectorAll('[data-status]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    
+                    currentItemsStatus = status;
+                    searchItems(itemsSearch.value.toLowerCase().trim());
+                });
+            });
+            
+            // User role filter buttons
+            document.querySelectorAll('[data-user-role]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const role = e.target.getAttribute('data-user-role');
+                    
+                    // Update active button
+                    document.querySelectorAll('[data-user-role]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    
+                    currentUserRole = role;
+                    searchUsers(usersSearch.value.toLowerCase().trim());
+                });
+            });
+            
+            // Analytics filter buttons
+            document.querySelectorAll('[data-activity]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const activity = e.target.getAttribute('data-activity');
+                    
+                    // Update active button
+                    document.querySelectorAll('[data-activity]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    
+                    currentAnalyticsFilter = activity;
+                    searchAnalytics(analyticsSearch.value.toLowerCase().trim());
+                });
+            });
+        }
+
+        // Search dashboard items
+        function searchDashboard(searchTerm) {
+            let filteredItems = [...items];
+            
+            // Apply status filter if not 'all'
+            if (currentDashboardFilter !== 'all') {
+                if (currentDashboardFilter === 'items') {
+                    // For items filter, show only items (no activity filtering needed)
+                } else if (currentDashboardFilter === 'activity') {
+                    // For activity filter, we'll handle this separately
+                }
+            }
+            
+            if (searchTerm) {
+                filteredItems = filteredItems.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.category.toLowerCase().includes(searchTerm) ||
+                    item.location.toLowerCase().includes(searchTerm) ||
+                    item.description.toLowerCase().includes(searchTerm) ||
+                    item.status.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Sort by date and take first 5
+            filteredItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Show/hide no results message
+            if (filteredItems.length === 0) {
+                dashboardNoResults.classList.remove('d-none');
+                recentItemsTable.innerHTML = '';
+            } else {
+                dashboardNoResults.classList.add('d-none');
+                renderRecentItems(filteredItems.slice(0, 5));
+            }
+        }
+
+        // Search all items
+        function searchItems(searchTerm) {
+            let filteredItems = [...items];
+            
+            // Apply status filter
+            if (currentItemsStatus !== 'all') {
+                filteredItems = filteredItems.filter(item => item.status === currentItemsStatus);
+            }
+            
+            // Apply category filter
+            if (currentItemsCategory) {
+                filteredItems = filteredItems.filter(item => item.category === currentItemsCategory);
+            }
+            
+            // Apply search term
+            if (searchTerm) {
+                filteredItems = filteredItems.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.category.toLowerCase().includes(searchTerm) ||
+                    item.location.toLowerCase().includes(searchTerm) ||
+                    item.description.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Show/hide no results message
+            if (filteredItems.length === 0) {
+                itemsNoResults.classList.remove('d-none');
+                allItemsTable.innerHTML = '';
+            } else {
+                itemsNoResults.classList.add('d-none');
+                renderAllItems(filteredItems);
+            }
+        }
+
+        // Search categories
+        function searchCategories(searchTerm) {
+            let filteredCategories = [...categories];
+            
+            if (searchTerm) {
+                filteredCategories = filteredCategories.filter(category => 
+                    category.name.toLowerCase().includes(searchTerm) ||
+                    category.description.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Show/hide no results message
+            if (filteredCategories.length === 0) {
+                categoriesNoResults.classList.remove('d-none');
+                categoriesTable.innerHTML = '';
+            } else {
+                categoriesNoResults.classList.add('d-none');
+                renderCategories(filteredCategories);
+            }
+        }
+
+        // Search users
+        function searchUsers(searchTerm) {
+            let filteredUsers = [...users];
+            
+            // Apply role filter
+            if (currentUserRole !== 'all') {
+                filteredUsers = filteredUsers.filter(user => user.role === currentUserRole);
+            }
+            
+            // Apply search term
+            if (searchTerm) {
+                filteredUsers = filteredUsers.filter(user => 
+                    user.name.toLowerCase().includes(searchTerm) ||
+                    user.email.toLowerCase().includes(searchTerm) ||
+                    user.role.toLowerCase().includes(searchTerm) ||
+                    user.location.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Show/hide no results message
+            if (filteredUsers.length === 0) {
+                usersNoResults.classList.remove('d-none');
+                usersTable.innerHTML = '';
+            } else {
+                usersNoResults.classList.add('d-none');
+                renderUsers(filteredUsers);
+            }
+        }
+
+        // Search analytics/activity
+        function searchAnalytics(searchTerm) {
+            let filteredActivity = [...activityLogs];
+            
+            // Apply activity type filter
+            if (currentAnalyticsFilter !== 'all') {
+                filteredActivity = filteredActivity.filter(log => {
+                    if (currentAnalyticsFilter === 'reports') {
+                        return log.action.includes('Reported');
+                    } else if (currentAnalyticsFilter === 'updates') {
+                        return log.action.includes('Updated');
+                    } else if (currentAnalyticsFilter === 'additions') {
+                        return log.action.includes('Added') || log.action.includes('Reported');
+                    }
+                    return true;
+                });
+            }
+            
+            // Apply search term
+            if (searchTerm) {
+                filteredActivity = filteredActivity.filter(log => 
+                    log.user.toLowerCase().includes(searchTerm) ||
+                    log.action.toLowerCase().includes(searchTerm) ||
+                    log.details.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Show/hide no results message
+            if (filteredActivity.length === 0) {
+                analyticsNoResults.classList.remove('d-none');
+                activityTable.innerHTML = '';
+            } else {
+                analyticsNoResults.classList.add('d-none');
+                renderActivityLogs(filteredActivity);
+            }
+        }
+
+        // Perform global search across all sections
+        function performGlobalSearch(searchTerm) {
+            if (!searchTerm) return;
+            
+            // Search across all data
+            const foundItems = items.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.category.toLowerCase().includes(searchTerm) ||
+                item.location.toLowerCase().includes(searchTerm)
+            );
+            
+            const foundCategories = categories.filter(category => 
+                category.name.toLowerCase().includes(searchTerm)
+            );
+            
+            const foundUsers = users.filter(user => 
+                user.name.toLowerCase().includes(searchTerm) ||
+                user.email.toLowerCase().includes(searchTerm)
+            );
+            
+            const foundActivity = activityLogs.filter(log => 
+                log.user.toLowerCase().includes(searchTerm) ||
+                log.action.toLowerCase().includes(searchTerm)
+            );
+            
+            // Show results in appropriate section
+            // Prioritize users, then items, then categories, then activity
+            if (foundUsers.length > 0) {
+                showSection('users');
+                searchUsers(searchTerm);
+            } else if (foundItems.length > 0) {
+                showSection('items');
+                searchItems(searchTerm);
+            } else if (foundCategories.length > 0) {
+                showSection('categories');
+                searchCategories(searchTerm);
+            } else if (foundActivity.length > 0) {
+                showSection('analytics');
+                searchAnalytics(searchTerm);
+            } else {
+                // No results found anywhere
+                showSection('dashboard');
+                dashboardNoResults.classList.remove('d-none');
+                recentItemsTable.innerHTML = '';
+            }
+        }
+
+        // Reset search
+        function resetSearch() {
+            // Clear all search inputs
+            globalSearch.value = '';
+            dashboardSearch.value = '';
+            itemsSearch.value = '';
+            categoriesSearch.value = '';
+            usersSearch.value = '';
+            analyticsSearch.value = '';
+            
+            // Reset filters
+            currentDashboardFilter = 'all';
+            currentItemsStatus = 'all';
+            currentUserRole = 'all';
+            currentAnalyticsFilter = 'all';
+            currentItemsCategory = '';
+            
+            // Reset filter buttons
+            document.querySelectorAll('[data-filter]').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-filter') === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            document.querySelectorAll('[data-status]').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-status') === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            document.querySelectorAll('[data-user-role]').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-user-role') === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            document.querySelectorAll('[data-activity]').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-activity') === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Reset category filter
+            itemsCategoryFilter.value = '';
+            
+            // Hide no results messages
+            dashboardNoResults.classList.add('d-none');
+            itemsNoResults.classList.add('d-none');
+            categoriesNoResults.classList.add('d-none');
+            usersNoResults.classList.add('d-none');
+            analyticsNoResults.classList.add('d-none');
+            
+            // Render all data
+            renderRecentItems();
+            renderAllItems();
+            renderCategories();
+            renderUsers();
+            renderActivityLogs();
+        }
+
+        // Set today's date in date inputs
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                if (!input.value) input.value = today;
+            });
+        }
+
+        // Render recent items table
+        function renderRecentItems(itemsToRender = null) {
+            recentItemsTable.innerHTML = '';
+            
+            const itemsData = itemsToRender || items;
+            
+            // Sort by date (newest first) and take first 5
+            const sortedItems = [...itemsData].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+            
+            sortedItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="item-name">
+                            <div class="item-image">
+                                <i class="fas fa-${getItemIcon(item.category)}"></i>
+                            </div>
+                            <div>
+                                <div><strong>${item.name}</strong></div>
+                                <div style="font-size: 0.85rem; color: #6c757d;">ID: #${item.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${item.category}</td>
+                    <td><span class="status-badge status-${item.status}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span></td>
+                    <td>${formatDate(item.date)}</td>
+                    <td>${item.location}</td>
+                    <td>
+                        <button class="btn btn-small btn-secondary" onclick="editItem(${item.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="confirmDelete('item', ${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                recentItemsTable.appendChild(row);
+            });
+            
+            // Update counts
+            updateItemCounts();
+        }
+
+        // Render all items table
+        function renderAllItems(itemsToRender = null) {
+            allItemsTable.innerHTML = '';
+            
+            const itemsData = itemsToRender || items;
+            
+            itemsData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>#${item.id}</td>
+                    <td>
+                        <div class="item-name">
+                            <div class="item-image">
+                                <i class="fas fa-${getItemIcon(item.category)}"></i>
+                            </div>
+                            <div>${item.name}</div>
+                        </div>
+                    </td>
+                    <td>${item.category}</td>
+                    <td><span class="status-badge status-${item.status}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span></td>
+                    <td>${formatDate(item.date)}</td>
+                    <td>${item.location}</td>
+                    <td>
+                        <button class="btn btn-small btn-secondary" onclick="editItem(${item.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="confirmDelete('item', ${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                allItemsTable.appendChild(row);
+            });
+        }
+
+        // Render categories table
+        function renderCategories(categoriesToRender = null) {
+            categoriesTable.innerHTML = '';
+            
+            const categoriesData = categoriesToRender || categories;
+            
+            categoriesData.forEach(category => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>#${category.id}</td>
+                    <td><strong>${category.name}</strong></td>
+                    <td>${category.description}</td>
+                    <td>${category.itemCount} items</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 20px; height: 20px; background: ${category.color}; border-radius: 4px;"></div>
+                            <span>${category.color}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-small btn-secondary" onclick="editCategory(${category.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="confirmDelete('category', ${category.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                categoriesTable.appendChild(row);
+            });
+        }
+
+        // Render users table
+        function renderUsers(usersToRender = null) {
+            usersTable.innerHTML = '';
+            
+            const usersData = usersToRender || users;
+            
+            usersData.forEach(user => {
+                // Get user initials for avatar
+                const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                
+                // Format last login time
+                const lastLogin = formatDateTime(user.lastLogin);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>#${user.id}</td>
+                    <td>
+                        <div class="item-name">
+                            <div class="user-avatar-small" style="background: ${getUserColor(user.id)};">
+                                ${initials}
+                            </div>
+                            <div>
+                                <div><strong>${user.name}</strong></div>
+                                <div style="font-size: 0.85rem; color: #6c757d;">ID: #${user.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${user.email}</td>
+                    <td><span class="user-role-badge user-role-${user.role}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span></td>
+                    <td><span class="user-status-badge user-status-${user.status}">${user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span></td>
+                    <td>${lastLogin}</td>
+                    <td>${user.itemsReported} reported, ${user.itemsClaimed} claimed</td>
+                    <td>
+                        <button class="btn btn-small btn-secondary" onclick="viewUserDetails(${user.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-small btn-secondary" onclick="editUser(${user.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="confirmDelete('user', ${user.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                usersTable.appendChild(row);
+            });
+            
+            // Update user stats
+            updateUserStats();
+        }
+
+        // View user details
+        function viewUserDetails(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            currentUserId = userId;
+            
+            // Get user initials for avatar
+            const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            
+            // Update user details
+            document.getElementById('userDetailAvatar').textContent = initials;
+            document.getElementById('userDetailName').textContent = user.name;
+            document.getElementById('userDetailEmail').textContent = user.email;
+            document.getElementById('userDetailId').textContent = `#${user.id}`;
+            document.getElementById('userDetailCreated').textContent = formatDate(user.createdAt);
+            document.getElementById('userDetailLastLogin').textContent = formatDateTime(user.lastLogin, true);
+            document.getElementById('userDetailItemsReported').textContent = `${user.itemsReported} items`;
+            document.getElementById('userDetailItemsClaimed').textContent = `${user.itemsClaimed} items`;
+            document.getElementById('userDetailIP').textContent = user.ipAddress;
+            document.getElementById('userDetailLocation').textContent = user.location;
+            document.getElementById('userDetailBrowser').textContent = user.browser;
+            
+            // Update role badge
+            const roleBadge = document.getElementById('userDetailRole');
+            roleBadge.textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+            roleBadge.className = `user-role-badge user-role-${user.role}`;
+            
+            // Update status badge
+            const statusBadge = document.getElementById('userDetailStatus');
+            statusBadge.textContent = user.status.charAt(0).toUpperCase() + user.status.slice(1);
+            statusBadge.className = `user-status-badge user-status-${user.status}`;
+            
+            // Show user details and hide users table
+            userDetailsContainer.classList.remove('d-none');
+            document.querySelector('.table-container').classList.add('d-none');
+        }
+
+        // Close user details
+        function closeUserDetails() {
+            userDetailsContainer.classList.add('d-none');
+            document.querySelector('.table-container').classList.remove('d-none');
+            currentUserId = null;
+        }
+
+        // Render activity logs
+        function renderActivityLogs(activityToRender = null) {
+            activityTable.innerHTML = '';
+            
+            const activityData = activityToRender || activityLogs;
+            
+            activityData.forEach(log => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${log.time}</td>
+                    <td><strong>${log.user}</strong></td>
+                    <td>${log.action}</td>
+                    <td>${log.details}</td>
+                    <td>${log.ip}</td>
+                `;
+                activityTable.appendChild(row);
+            });
+        }
+
+        // Update item counts
+        function updateItemCounts() {
+            const totalItems = items.length;
+            const lostItems = items.filter(item => item.status === 'lost').length;
+            const foundItems = items.filter(item => item.status === 'found').length;
+            const claimedItems = items.filter(item => item.status === 'claimed').length;
+            
+            document.getElementById('totalItemsCount').textContent = totalItems;
+            document.getElementById('lostItemsCount').textContent = lostItems;
+            document.getElementById('foundItemsCount').textContent = foundItems;
+            document.getElementById('claimedItemsCount').textContent = claimedItems;
+        }
+
+        // Update user stats
+        function updateUserStats() {
+            const totalUsers = users.length;
+            const onlineUsers = users.filter(user => user.status === 'online').length;
+            
+            // Calculate new users this week (created in last 7 days)
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const newUsers = users.filter(user => new Date(user.createdAt) > oneWeekAgo).length;
+            
+            // Calculate active users today (logged in today)
+            const today = new Date().toDateString();
+            const activeUsers = users.filter(user => {
+                const loginDate = new Date(user.lastLogin.split(' ')[0]).toDateString();
+                return loginDate === today;
+            }).length;
+            
+            totalUsersCount.textContent = totalUsers;
+            onlineUsersCount.textContent = onlineUsers;
+            newUsersCount.textContent = newUsers;
+            activeUsersCount.textContent = activeUsers;
+        }
+
+        // Populate category dropdowns
+        function populateCategoryDropdowns() {
+            const dropdowns = document.querySelectorAll('#itemCategory, #categorySelect, #itemsCategoryFilter');
+            
+            dropdowns.forEach(dropdown => {
+                dropdown.innerHTML = '';
+                
+                // Add default option for filters
+                if (dropdown.id === 'itemsCategoryFilter') {
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'All Categories';
+                    dropdown.appendChild(defaultOption);
+                } else {
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Select Category';
+                    dropdown.appendChild(defaultOption);
+                }
+                
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.name;
+                    option.textContent = category.name;
+                    dropdown.appendChild(option);
+                });
+            });
+        }
+
+        // Setup charts with green & blue theme
+        function setupCharts() {
+            // Status distribution chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const lostCount = items.filter(item => item.status === 'lost').length;
+            const foundCount = items.filter(item => item.status === 'found').length;
+            const claimedCount = items.filter(item => item.status === 'claimed').length;
+            
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Lost', 'Found', 'Claimed'],
+                    datasets: [{
+                        data: [lostCount, foundCount, claimedCount],
+                        backgroundColor: [
+                            'rgba(255, 193, 7, 0.8)', // Yellow for lost
+                            'rgba(76, 175, 80, 0.8)',  // Green for found
+                            'rgba(0, 123, 255, 0.8)'   // Blue for claimed
+                        ],
+                        borderWidth: 2,
+                        borderColor: 'white'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Monthly chart
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [
+                        {
+                            label: 'Lost Items',
+                            data: [12, 8, 15, 10, 7, 9, 11, 13, 10, 14, 9, 12],
+                            borderColor: '#ffc107',
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Found Items',
+                            data: [10, 12, 8, 14, 11, 13, 9, 12, 15, 10, 13, 11],
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Items'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Category chart
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            const categoryNames = categories.map(cat => cat.name);
+            const categoryCounts = categories.map(cat => cat.itemCount);
+            const categoryColors = categories.map(cat => cat.color);
+            
+            new Chart(categoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: categoryNames,
+                    datasets: [{
+                        label: 'Items per Category',
+                        data: categoryCounts,
+                        backgroundColor: categoryColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Items'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Weekly activity chart
+            const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+            new Chart(weeklyCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [
+                        {
+                            label: 'Lost',
+                            data: [4, 3, 6, 2, 5, 1, 2],
+                            backgroundColor: 'rgba(255, 193, 7, 0.7)'
+                        },
+                        {
+                            label: 'Found',
+                            data: [7, 5, 8, 6, 9, 4, 3],
+                            backgroundColor: 'rgba(76, 175, 80, 0.7)'
+                        },
+                        {
+                            label: 'Claimed',
+                            data: [2, 1, 3, 2, 4, 1, 1],
+                            backgroundColor: 'rgba(0, 123, 255, 0.7)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Items'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // User activity chart
+            const userActivityCtx = document.getElementById('userActivityChart').getContext('2d');
+            new Chart(userActivityCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [
+                        {
+                            label: 'User Logins',
+                            data: [45, 52, 48, 55, 60, 58, 65],
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Items Reported',
+                            data: [12, 15, 10, 18, 20, 16, 22],
+                            borderColor: '#007BFF',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Items Claimed',
+                            data: [5, 7, 4, 8, 9, 6, 10],
+                            borderColor: '#ffc107',
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Count'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sectionId = link.getAttribute('data-section');
+                    
+                    // Update active nav link
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    
+                    // Show selected section
+                    showSection(sectionId);
+                    
+                    // Update page title
+                    const titles = {
+                        dashboard: { title: "Dashboard", subtitle: "Welcome back, Admin" },
+                        items: { title: "Items Management", subtitle: "Manage all lost and found items" },
+                        categories: { title: "Categories", subtitle: "Manage item categories" },
+                        users: { title: "Users", subtitle: "Manage system users and permissions" },
+                        analytics: { title: "Analytics", subtitle: "View reports and statistics" },
+                        reports: { title: "Reports", subtitle: "Generate and view reports" },
+                        settings: { title: "Settings", subtitle: "Configure system settings" }
+                    };
+                    
+                    if (titles[sectionId]) {
+                        document.getElementById('page-title').textContent = titles[sectionId].title;
+                        document.getElementById('page-subtitle').textContent = titles[sectionId].subtitle;
+                    }
+                    
+                    // Clear search when switching sections
+                    globalSearch.value = '';
+                    
+                    // Close sidebar on mobile
+                    if (window.innerWidth < 992) {
+                        sidebar.classList.remove('active');
+                        overlay.classList.remove('active');
+                    }
+                });
+            });
+            
+            // Add item buttons
+            document.getElementById('addItemBtn').addEventListener('click', () => showItemForm('add'));
+            document.getElementById('addNewItemBtn').addEventListener('click', () => {
+                showSection('items');
+                setTimeout(() => showItemForm('add'), 100);
+            });
+            
+            // Add category button
+            document.getElementById('addCategoryBtn').addEventListener('click', () => showCategoryForm('add'));
+            
+            // Add user button
+            document.getElementById('addUserBtn').addEventListener('click', () => showUserForm('add'));
+            
+            // Close user details
+            document.getElementById('closeUserDetails').addEventListener('click', closeUserDetails);
+            
+            // Form cancel buttons
+            document.getElementById('cancelForm').addEventListener('click', () => {
+                itemFormContainer.classList.add('d-none');
+                showSection('dashboard');
+                resetItemForm();
+            });
+            
+            document.getElementById('cancelCategoryForm').addEventListener('click', () => {
+                categoryFormContainer.classList.add('d-none');
+                showSection('categories');
+                resetCategoryForm();
+            });
+            
+            document.getElementById('cancelUserForm').addEventListener('click', () => {
+                userFormContainer.classList.add('d-none');
+                showSection('users');
+                resetUserForm();
+            });
+            
+            // Form submissions
+            document.getElementById('itemForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveItem();
+            });
+            
+            document.getElementById('categoryForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveCategory();
+            });
+            
+            document.getElementById('userForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveUser();
+            });
+            
+            // Delete modal
+            document.getElementById('closeModal').addEventListener('click', () => {
+                deleteModal.classList.remove('active');
+            });
+            
+            document.getElementById('cancelDelete').addEventListener('click', () => {
+                deleteModal.classList.remove('active');
+            });
+            
+            document.getElementById('confirmDelete').addEventListener('click', () => {
+                if (deleteType === 'item') {
+                    deleteItem(currentItemId);
+                } else if (deleteType === 'category') {
+                    deleteCategory(currentCategoryId);
+                } else if (deleteType === 'user') {
+                    deleteUser(currentUserId);
+                }
+                deleteModal.classList.remove('active');
+            });
+            
+            // Mobile sidebar toggle
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+            
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 992 && 
+                    !sidebar.contains(e.target) && 
+                    !sidebarToggle.contains(e.target) &&
+                    sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                }
+            });
+            
+            // Export users button
+            document.getElementById('exportUsersBtn').addEventListener('click', exportUsers);
+            
+            // Send message button
+            document.getElementById('sendMessageBtn').addEventListener('click', sendUserMessage);
+        }
+
+        // Show section
+        function showSection(sectionId) {
+            // Hide all sections and forms
+            sections.forEach(section => section.classList.remove('active'));
+            itemFormContainer.classList.add('d-none');
+            categoryFormContainer.classList.add('d-none');
+            userFormContainer.classList.add('d-none');
+            userDetailsContainer.classList.add('d-none');
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Make sure tables are visible
+            if (sectionId === 'users') {
+                document.querySelector('.table-container').classList.remove('d-none');
+            }
+            
+            // Reset search for the section
+            resetSearch();
+        }
+
+        // Show item form
+        function showItemForm(mode, itemId = null) {
+            showSection('items');
+            
+            // Hide other forms if open
+            categoryFormContainer.classList.add('d-none');
+            userFormContainer.classList.add('d-none');
+            
+            // Show item form
+            itemFormContainer.classList.remove('d-none');
+            itemFormContainer.scrollIntoView({ behavior: 'smooth' });
+            
+            if (mode === 'edit' && itemId) {
+                document.getElementById('formTitle').textContent = 'Edit Item';
+                document.getElementById('submitForm').textContent = 'Update Item';
+                
+                // Find and populate item data
+                const item = items.find(item => item.id === itemId);
+                if (item) {
+                    document.getElementById('itemName').value = item.name;
+                    document.getElementById('itemCategory').value = item.category;
+                    document.getElementById('itemStatus').value = item.status;
+                    document.getElementById('itemDate').value = item.date;
+                    document.getElementById('itemLocation').value = item.location;
+                    document.getElementById('itemImage').value = item.image || '';
+                    document.getElementById('itemDescription').value = item.description;
+                    
+                    currentItemId = itemId;
+                    isEditMode = true;
+                }
+            } else {
+                document.getElementById('formTitle').textContent = 'Add New Item';
+                document.getElementById('submitForm').textContent = 'Save Item';
+                resetItemForm();
+                isEditMode = false;
+            }
+        }
+
+        // Show category form
+        function showCategoryForm(mode, categoryId = null) {
+            showSection('categories');
+            
+            // Hide other forms if open
+            itemFormContainer.classList.add('d-none');
+            userFormContainer.classList.add('d-none');
+            
+            // Show category form
+            categoryFormContainer.classList.remove('d-none');
+            categoryFormContainer.scrollIntoView({ behavior: 'smooth' });
+            
+            if (mode === 'edit' && categoryId) {
+                document.getElementById('categoryFormTitle').textContent = 'Edit Category';
+                document.getElementById('submitCategoryForm').textContent = 'Update Category';
+                
+                // Find and populate category data
+                const category = categories.find(cat => cat.id === categoryId);
+                if (category) {
+                    document.getElementById('categoryName').value = category.name;
+                    document.getElementById('categoryColor').value = category.color;
+                    document.getElementById('categoryDescription').value = category.description;
+                    
+                    currentCategoryId = categoryId;
+                    isEditMode = true;
+                }
+            } else {
+                document.getElementById('categoryFormTitle').textContent = 'Add New Category';
+                document.getElementById('submitCategoryForm').textContent = 'Save Category';
+                resetCategoryForm();
+                isEditMode = false;
+            }
+        }
+
+        // Show user form
+        function showUserForm(mode, userId = null) {
+            showSection('users');
+            
+            // Hide other forms if open
+            itemFormContainer.classList.add('d-none');
+            categoryFormContainer.classList.add('d-none');
+            userDetailsContainer.classList.add('d-none');
+            
+            // Show user form
+            userFormContainer.classList.remove('d-none');
+            userFormContainer.scrollIntoView({ behavior: 'smooth' });
+            
+            if (mode === 'edit' && userId) {
+                document.getElementById('userFormTitle').textContent = 'Edit User';
+                document.getElementById('submitUserForm').textContent = 'Update User';
+                
+                // Find and populate user data
+                const user = users.find(u => u.id === userId);
+                if (user) {
+                    document.getElementById('userName').value = user.name;
+                    document.getElementById('userEmail').value = user.email;
+                    document.getElementById('userRole').value = user.role;
+                    document.getElementById('userStatus').value = user.status;
+                    document.getElementById('userPhone').value = user.phone || '';
+                    document.getElementById('userLocation').value = user.location || '';
+                    document.getElementById('userNotes').value = user.notes || '';
+                    
+                    currentUserId = userId;
+                    isEditMode = true;
+                }
+            } else {
+                document.getElementById('userFormTitle').textContent = 'Add New User';
+                document.getElementById('submitUserForm').textContent = 'Save User';
+                resetUserForm();
+                isEditMode = false;
+            }
+        }
+
+        // Reset item form
+        function resetItemForm() {
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemDate').value = new Date().toISOString().split('T')[0];
+            currentItemId = null;
+            isEditMode = false;
+        }
+
+        // Reset category form
+        function resetCategoryForm() {
+            document.getElementById('categoryForm').reset();
+            document.getElementById('categoryColor').value = '#4CAF50';
+            currentCategoryId = null;
+            isEditMode = false;
+        }
+
+        // Reset user form
+        function resetUserForm() {
+            document.getElementById('userForm').reset();
+            currentUserId = null;
+            isEditMode = false;
+        }
+
+        // Save item
+        function saveItem() {
+            const item = {
+                name: document.getElementById('itemName').value,
+                category: document.getElementById('itemCategory').value,
+                status: document.getElementById('itemStatus').value,
+                date: document.getElementById('itemDate').value,
+                location: document.getElementById('itemLocation').value,
+                image: document.getElementById('itemImage').value || `https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80`,
+                description: document.getElementById('itemDescription').value
+            };
+            
+            if (isEditMode && currentItemId) {
+                // Update existing item
+                const index = items.findIndex(i => i.id === currentItemId);
+                if (index !== -1) {
+                    items[index] = { ...items[index], ...item };
+                }
+                showToast('Success', 'Item updated successfully!');
+            } else {
+                // Add new item
+                const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
+                item.id = newId;
+                items.unshift(item);
+                
+                // Add activity log
+                const activity = {
+                    time: getCurrentTime(),
+                    user: "Admin",
+                    action: "Added new item",
+                    details: `Added "${item.name}" to ${item.category}`,
+                    ip: "192.168.1.100"
+                };
+                activityLogs.unshift(activity);
+                
+                showToast('Success', 'Item added successfully!');
+            }
+            
+            // Update categories item counts
+            updateCategoryItemCounts();
+            
+            // Update UI
+            renderRecentItems();
+            renderAllItems();
+            renderActivityLogs();
+            
+            // Hide form and show items section
+            itemFormContainer.classList.add('d-none');
+            showSection('items');
+            resetItemForm();
+            
+            // Update charts
+            setupCharts();
+        }
+
+        // Save category
+        function saveCategory() {
+            const category = {
+                name: document.getElementById('categoryName').value,
+                color: document.getElementById('categoryColor').value,
+                description: document.getElementById('categoryDescription').value,
+                itemCount: 0 // Will be calculated
+            };
+            
+            if (isEditMode && currentCategoryId) {
+                // Update existing category
+                const index = categories.findIndex(c => c.id === currentCategoryId);
+                if (index !== -1) {
+                    category.itemCount = categories[index].itemCount;
+                    categories[index] = { ...categories[index], ...category };
+                }
+                showToast('Success', 'Category updated successfully!');
+            } else {
+                // Add new category
+                const newId = categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1;
+                category.id = newId;
+                
+                // Count items in this category
+                category.itemCount = items.filter(item => item.category === category.name).length;
+                
+                categories.push(category);
+                
+                // Add activity log
+                const activity = {
+                    time: getCurrentTime(),
+                    user: "Admin",
+                    action: "Added new category",
+                    details: `Added "${category.name}" category`,
+                    ip: "192.168.1.100"
+                };
+                activityLogs.unshift(activity);
+                
+                showToast('Success', 'Category added successfully!');
+            }
+            
+            // Update UI
+            renderCategories();
+            populateCategoryDropdowns();
+            renderActivityLogs();
+            
+            // Hide form and show categories section
+            categoryFormContainer.classList.add('d-none');
+            showSection('categories');
+            resetCategoryForm();
+            
+            // Update charts
+            setupCharts();
+        }
+
+        // Save user
+        function saveUser() {
+            const user = {
+                name: document.getElementById('userName').value,
+                email: document.getElementById('userEmail').value,
+                role: document.getElementById('userRole').value,
+                status: document.getElementById('userStatus').value,
+                phone: document.getElementById('userPhone').value || '',
+                location: document.getElementById('userLocation').value || '',
+                notes: document.getElementById('userNotes').value || '',
+                itemsReported: 0,
+                itemsClaimed: 0,
+                createdAt: new Date().toISOString().split('T')[0],
+                lastLogin: new Date().toISOString().split('T')[0] + ' 00:00:00',
+                ipAddress: '192.168.1.' + Math.floor(Math.random() * 255),
+                browser: 'Chrome ' + (120 + Math.floor(Math.random() * 5))
+            };
+            
+            if (isEditMode && currentUserId) {
+                // Update existing user
+                const index = users.findIndex(u => u.id === currentUserId);
+                if (index !== -1) {
+                    // Preserve existing data
+                    user.itemsReported = users[index].itemsReported;
+                    user.itemsClaimed = users[index].itemsClaimed;
+                    user.createdAt = users[index].createdAt;
+                    user.lastLogin = users[index].lastLogin;
+                    user.ipAddress = users[index].ipAddress;
+                    user.browser = users[index].browser;
+                    
+                    users[index] = { ...users[index], ...user };
+                }
+                showToast('Success', 'User updated successfully!');
+            } else {
+                // Add new user
+                const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
+                user.id = newId;
+                users.push(user);
+                
+                // Add activity log
+                const activity = {
+                    time: getCurrentTime(),
+                    user: "Admin",
+                    action: "Added new user",
+                    details: `Added "${user.name}" as ${user.role}`,
+                    ip: "192.168.1.100"
+                };
+                activityLogs.unshift(activity);
+                
+                showToast('Success', 'User added successfully!');
+            }
+            
+            // Update UI
+            renderUsers();
+            renderActivityLogs();
+            
+            // Hide form and show users section
+            userFormContainer.classList.add('d-none');
+            showSection('users');
+            resetUserForm();
+            
+            // Update user stats
+            updateUserStats();
+        }
+
+        // Update category item counts
+        function updateCategoryItemCounts() {
+            categories.forEach(category => {
+                category.itemCount = items.filter(item => item.category === category.name).length;
+            });
+        }
+
+        // Edit item
+        function editItem(id) {
+            showItemForm('edit', id);
+        }
+
+        // Edit category
+        function editCategory(id) {
+            showCategoryForm('edit', id);
+        }
+
+        // Edit user
+        function editUser(id) {
+            // Close user details if open
+            closeUserDetails();
+            // Show user form
+            showUserForm('edit', id);
+        }
+
+        // Confirm delete
+        function confirmDelete(type, id) {
+            deleteType = type;
+            
+            if (type === 'item') {
+                currentItemId = id;
+                const item = items.find(item => item.id === id);
+                document.getElementById('deleteMessage').textContent = 
+                    `Are you sure you want to delete "${item.name}"? This action cannot be undone.`;
+            } else if (type === 'category') {
+                currentCategoryId = id;
+                const category = categories.find(cat => cat.id === id);
+                document.getElementById('deleteMessage').textContent = 
+                    `Are you sure you want to delete the "${category.name}" category? This action cannot be undone.`;
+            } else if (type === 'user') {
+                currentUserId = id;
+                const user = users.find(u => u.id === id);
+                document.getElementById('deleteMessage').textContent = 
+                    `Are you sure you want to delete user "${user.name}"? This action cannot be undone.`;
+            }
+            
+            deleteModal.classList.add('active');
+        }
+
+        // Delete item
+        function deleteItem(id) {
+            const item = items.find(item => item.id === id);
+            
+            items = items.filter(item => item.id !== id);
+            
+            // Add activity log
+            const activity = {
+                time: getCurrentTime(),
+                user: "Admin",
+                action: "Deleted item",
+                details: `Deleted "${item.name}" from ${item.category}`,
+                ip: "192.168.1.100"
+            };
+            activityLogs.unshift(activity);
+            
+            renderRecentItems();
+            renderAllItems();
+            renderActivityLogs();
+            showToast('Success', 'Item deleted successfully!');
+            setupCharts();
+            
+            // Update categories item counts
+            updateCategoryItemCounts();
+        }
+
+        // Delete category
+        function deleteCategory(id) {
+            const category = categories.find(cat => cat.id === id);
+            
+            // Check if category has items
+            const categoryItems = items.filter(item => item.category === category.name);
+            if (categoryItems.length > 0) {
+                showToast('Error', `Cannot delete category with ${categoryItems.length} items. Reassign items first.`);
+                return;
+            }
+            
+            categories = categories.filter(cat => cat.id !== id);
+            
+            // Add activity log
+            const activity = {
+                time: getCurrentTime(),
+                user: "Admin",
+                action: "Deleted category",
+                details: `Deleted "${category.name}" category`,
+                ip: "192.168.1.100"
+            };
+            activityLogs.unshift(activity);
+            
+            renderCategories();
+            populateCategoryDropdowns();
+            renderActivityLogs();
+            showToast('Success', 'Category deleted successfully!');
+            setupCharts();
+        }
+
+        // Delete user
+        function deleteUser(id) {
+            const user = users.find(u => u.id === id);
+            
+            // Check if user is admin
+            if (user.role === 'admin') {
+                const adminCount = users.filter(u => u.role === 'admin').length;
+                if (adminCount <= 1) {
+                    showToast('Error', 'Cannot delete the only admin user. Promote another user to admin first.');
+                    return;
+                }
+            }
+            
+            users = users.filter(u => u.id !== id);
+            
+            // Add activity log
+            const activity = {
+                time: getCurrentTime(),
+                user: "Admin",
+                action: "Deleted user",
+                details: `Deleted user "${user.name}"`,
+                ip: "192.168.1.100"
+            };
+            activityLogs.unshift(activity);
+            
+            renderUsers();
+            renderActivityLogs();
+            showToast('Success', 'User deleted successfully!');
+            
+            // Update user stats
+            updateUserStats();
+            
+            // Close user details if open
+            closeUserDetails();
+        }
+
+        // Export users to CSV
+        function exportUsers() {
+            const headers = ['ID', 'Name', 'Email', 'Role', 'Status', 'Last Login', 'Items Reported', 'Items Claimed', 'Created At', 'Location'];
+            const csvData = users.map(user => [
+                user.id,
+                user.name,
+                user.email,
+                user.role,
+                user.status,
+                user.lastLogin,
+                user.itemsReported,
+                user.itemsClaimed,
+                user.createdAt,
+                user.location
+            ]);
+            
+            const csvContent = [
+                headers.join(','),
+                ...csvData.map(row => row.join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `users_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            showToast('Success', 'Users exported successfully!');
+        }
+
+        // Send message to user
+        function sendUserMessage() {
+            if (!currentUserId) return;
+            
+            const user = users.find(u => u.id === currentUserId);
+            if (!user) return;
+            
+            // In a real app, this would open a messaging modal or redirect to messaging system
+            showToast('Info', `Message interface for ${user.name} would open here. In a real app, this would connect to your messaging system.`);
+        }
+
+        // Show toast notification
+        function showToast(title, message, type = 'success') {
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            
+            // Update icon based on type
+            const icon = toast.querySelector('.toast-icon i');
+            if (type === 'success') {
+                icon.className = 'fas fa-check';
+                toast.classList.add('toast-success');
+                toast.classList.remove('toast-error');
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-triangle';
+                toast.classList.add('toast-error');
+                toast.classList.remove('toast-success');
+            } else {
+                icon.className = 'fas fa-info-circle';
+                toast.classList.remove('toast-success', 'toast-error');
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Utility functions
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+
+        function formatDateTime(dateTimeString, relative = false) {
+            const date = new Date(dateTimeString);
+            const now = new Date();
+            
+            if (relative) {
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins} minutes ago`;
+                if (diffHours < 24) return `${diffHours} hours ago`;
+                if (diffDays < 7) return `${diffDays} days ago`;
+            }
+            
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function getItemIcon(category) {
+            const icons = {
+                'Electronics': 'mobile-alt',
+                'Personal Items': 'wallet',
+                'Keys': 'key',
+                'Bags': 'briefcase',
+                'Accessories': 'glasses',
+                'Clothing': 'tshirt',
+                'Books': 'book',
+                'Others': 'cube'
+            };
+            return icons[category] || 'cube';
+        }
+
+        function getUserColor(userId) {
+            const colors = [
+                '#4CAF50', '#007BFF', '#ffc107', '#17a2b8', '#6f42c1',
+                '#dc3545', '#fd7e14', '#20c997', '#6610f2', '#e83e8c'
+            ];
+            return colors[userId % colors.length];
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
