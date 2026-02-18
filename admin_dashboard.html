@@ -67,7 +67,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 3px solid var(--primary);
+            /* border-bottom: 3px solid var(--primary); */
         }
 
         .header-left h2 {
@@ -255,22 +255,24 @@
         }
 
         .logout-btn {
+            width: 100%;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 1rem;
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background: rgba(220, 53, 69, 0.1);
-            color: var(--danger);
-            border: none;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: 0.2s ease;
         }
 
         .logout-btn:hover {
-            background: rgba(220, 53, 69, 0.2);
+            background: #c82333;
+            transform: translateY(-1px);
         }
 
         /* Main Content */
@@ -1227,19 +1229,34 @@
             </div>
         </aside>
 
+        <!-- Logout Confirmation Modal -->
+        <div id="logoutModal" class="modal">
+            <div class="modal-box">
+                <h3>Confirm Logout</h3>
+                <p>Are you sure you want to logout?</p>
+
+                <div class="modal-buttons">
+                    <button id="cancelLogout">Cancel</button>
+                    <button id="confirmLogout">Logout</button>
+                </div>
+            </div>
+        </div>
+
+
+
         <!-- Main Content -->
         <main class="main-content">
             <!-- Dashboard Section -->
             <section id="dashboard" class="section active">
                 <!-- Dashboard Search Bar -->
-                <div class="section-search">
+                <!-- <div class="section-search">
                     <input type="text" id="dashboardSearch" placeholder="Search items, users, activity...">
                     <div class="search-filters">
                         <button class="search-filter-btn active" data-filter="all">All</button>
                         <button class="search-filter-btn" data-filter="items">Items</button>
                         <button class="search-filter-btn" data-filter="activity">Activity</button>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -1881,6 +1898,19 @@
     </div>
 
     <script>
+
+        document.querySelector(".logout-btn").addEventListener("click", function () {
+
+            let confirmLogout = confirm("Are you sure you want to logout?");
+
+            if (confirmLogout) {
+                window.location.href = "login.html";  // change if needed
+            }
+
+        });
+
+
+
         // Sample Data
         let items = [
             { id: 1, name: "iPhone 14 Pro", category: "Electronics", status: "found", date: "2024-01-15", location: "Main Lobby", description: "Space black iPhone with leather case", image: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
