@@ -88,33 +88,6 @@
             gap: 1.5rem;
         }
 
-        .search-box {
-            position: relative;
-        }
-
-        .search-box input {
-            padding: 0.75rem 1rem 0.75rem 3rem;
-            border: 2px solid var(--gray-light);
-            border-radius: 50px;
-            width: 300px;
-            font-size: 0.95rem;
-            transition: var(--transition);
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 1.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-        }
-
         .user-profile {
             display: flex;
             align-items: center;
@@ -186,23 +159,15 @@
         }
 
         .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
+            font-size: 2.2em;
+            color:#007BFF;
         }
 
         .logo-text h2 {
             font-weight: 700;
             font-size: 1.5rem;
             line-height: 1.2;
-            color: var(--secondary);
+            color: var(--primary);
         }
 
         .logo-text p {
@@ -273,6 +238,72 @@
         .logout-btn:hover {
             background: #c82333;
             transform: translateY(-1px);
+        }
+        /* Background blur overlay */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        /* Modal box */
+        .modal-box {
+            background: white;
+            padding: 80px;
+            border-radius: 50px;
+            width: 420px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: popup 0.2s ease;
+        }
+
+        @keyframes popup {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-box h3 {
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+        }
+
+        .modal-box p {
+            color: #666;
+            font-size: 1.0rem;
+            margin-bottom: 20px;
+        }
+
+        /* Buttons */
+        .modal-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .modal-buttons button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        #cancelLogout {
+            background: #e9ecef;
+        }
+
+        #confirmLogout {
+            background: #dc3545;
+            color: white;
+        }
+
+        #confirmLogout:hover {
+            background: #c82333;
         }
 
         /* Main Content */
@@ -1142,31 +1173,37 @@
         <div class="overlay"></div>
 
         <!-- Header -->
+         
         <header class="header">
-            <div class="header-left">
-                <h2 id="page-title">Welcome back, Admin</h2>
-                <!-- <p id="page-subtitle">Welcome back, Admin</p> -->
-            </div>
+
             <div class="header-right">
                 <button class="mobile-toggle" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
+            
+            <br>
+
+            <div class="header-left">
+                <h2 id="page-title">Welcome back, Admin</h2>
+                <!-- <p id="page-subtitle">Welcome back, Admin</p> -->
+            </div>
+            </div>
+            
                 
                 <div class="user-profile">
                     <div class="user-avatar">A</div>
                     <div class="user-info">
-                        <h4>Admin User</h4>
+                        <h4>Admin</h4>
                         <p>Administrator</p>
                     </div>
                 </div>
-            </div>
         </header>
 
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="logo">
                 <div class="logo-icon">
-                    <i class="fas fa-search-location"></i>
+                    <i class="fas fa-search-location" style="color: #007BFF;"></i>
                 </div>
                 <div class="logo-text">
                     <h2>Lost & Found Hub</h2>
@@ -1331,9 +1368,9 @@
                             <button class="btn btn-secondary btn-small" id="filterRecent">
                                 <i class="fas fa-filter"></i> Filter
                             </button>
-                            <button class="btn btn-primary btn-small" id="addItemBtn">
+                            <!-- <button class="btn btn-primary btn-small" id="addItemBtn">
                                 <i class="fas fa-plus"></i> Add Item
-                            </button>
+                            </button> -->
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -1345,7 +1382,7 @@
                                     <th>Status</th>
                                     <th>Date</th>
                                     <th>Location</th>
-                                    <th>Actions</th>
+                                    <!-- <th>Actions</th> -->
                                 </tr>
                             </thead>
                             <tbody id="recentItemsTable">
@@ -1425,7 +1462,7 @@
                                     <th>Status</th>
                                     <th>Date</th>
                                     <th>Location</th>
-                                    <th>Actions</th>
+                                    <!-- <th>Actions</th> -->
                                 </tr>
                             </thead>
                             <tbody id="allItemsTable">
@@ -1615,7 +1652,7 @@
                             </div>
                         </div>
                         
-                        <div class="form-actions mt-3">
+                        <!-- <div class="form-actions mt-3">
                             <button class="btn btn-secondary" onclick="editUser(currentUserId)">
                                 <i class="fas fa-edit"></i> Edit User
                             </button>
@@ -1625,7 +1662,7 @@
                             <button class="btn btn-primary" id="sendMessageBtn">
                                 <i class="fas fa-envelope"></i> Send Message
                             </button>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
 
@@ -1899,15 +1936,26 @@
 
     <script>
 
-        document.querySelector(".logout-btn").addEventListener("click", function () {
+        const logoutBtn = document.querySelector(".logout-btn");
+        const modal = document.getElementById("logoutModal");
+        const cancelBtn = document.getElementById("cancelLogout");
+        const confirmBtn = document.getElementById("confirmLogout");
 
-            let confirmLogout = confirm("Are you sure you want to logout?");
-
-            if (confirmLogout) {
-                window.location.href = "login.html";  // change if needed
-            }
-
+        // Show modal
+        logoutBtn.addEventListener("click", function () {
+            modal.style.display = "flex";
         });
+
+        // Cancel logout
+        cancelBtn.addEventListener("click", function () {
+            modal.style.display = "none";
+        });
+
+        // Confirm logout
+        confirmBtn.addEventListener("click", function () {
+            window.location.href = "login.html"; // change if needed
+        });
+
 
 
 
@@ -2590,16 +2638,8 @@
                     <td>${item.category}</td>
                     <td><span class="status-badge status-${item.status}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span></td>
                     <td>${formatDate(item.date)}</td>
-                    <td>${item.location}</td>
-                    <td>
-                        <button class="btn btn-small btn-secondary" onclick="editItem(${item.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-small btn-danger" onclick="confirmDelete('item', ${item.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
+                    <td>${item.location}</td>`
+                ;
                 recentItemsTable.appendChild(row);
             });
             
